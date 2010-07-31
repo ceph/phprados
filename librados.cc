@@ -6,7 +6,7 @@ using namespace std;
 
 using namespace librados;
 
-zend_object_handlers car_object_handlers;
+zend_object_handlers rados_object_handlers;
 zend_class_entry *rados_ce;
 
 struct rados_object {
@@ -14,9 +14,22 @@ struct rados_object {
 	Rados *rados;
 };
 
+ZEND_BEGIN_ARG_INFO_EX(arginfo_rados_open_pool, 0, 0, 1)
+    ZEND_ARG_INFO(0, pool)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_rados_close_pool, 0, 0, 1)
+    ZEND_ARG_INFO(0, pool)
+ZEND_END_ARG_INFO()
+
 void rados_free_storage(void *object TSRMLS_DC)
 {
+    Rados *rados;
 	rados_object *obj = (rados_object *)object;
+    rados = obj->rados;
+    if (rados != NULL) {
+        rados->shutdown();
+    }
 	delete obj->rados;
 
 	zend_hash_destroy(obj->std.properties);
@@ -51,17 +64,43 @@ PHP_METHOD(Rados, __construct)
 	Rados *rados = NULL;
 	zval *object = getThis();
 
-	rados = new Rados;
+    rados = new Rados();
 	rados_object *obj = (rados_object *)zend_object_store_get_object(object TSRMLS_CC);
 	obj->rados = rados;
 }
 
 PHP_METHOD(Rados, initialize)
 {
+    int argc = 1;
+    const char *argv[0];
+    Rados *rados;
+    
+    rados_object *obj = (rados_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
+    rados = obj->rados;
+    if (rados != NULL) {
+        if (rados->initialize(argc, argv) < 0) {
+            RETURN_NULL();
+        }
+    }
 }
 
 PHP_METHOD(Rados, open_pool)
 {
+    pool_t pool;
+    char *spool;
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &spool) == FAILURE) {
+        RETURN_NULL();
+    }
+    
+    Rados *rados;
+    rados_object *obj = (rados_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
+    rados = obj->rados;
+    if (rados != NULL) {
+        if(rados->open_pool(spool, &pool) < 0) {
+            RETURN_NULL();
+        }
+    }
+
 }
 
 PHP_METHOD(Rados, close_pool)
@@ -76,19 +115,13 @@ PHP_METHOD(Rados, create)
 {
 }
 
-PHP_METHOD(Rados, __deconstruct)
-{
-	rados.shutdown();
-}
-
 function_entry rados_methods[] = {
-	PHP_ME(Rados,  __construct,     NULL, ZEND_ACC_PUBLIC | ZEND_ACC_CTOR)
-	PHP_ME(Rados, initialize,           NULL, ZEND_ACC_PUBLIC)
-	PHP_ME(Rados, open_pool,      NULL, ZEND_ACC_PUBLIC)
-	PHP_ME(Rados, close_pool,           NULL, ZEND_ACC_PUBLIC)
+	PHP_ME(Rados, __construct, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_CTOR)
+	PHP_ME(Rados, initialize, NULL, ZEND_ACC_PUBLIC)
+	PHP_ME(Rados, open_pool, arginfo_rados_open_pool, ZEND_ACC_PUBLIC)
+	PHP_ME(Rados, close_pool, arginfo_rados_close_pool, ZEND_ACC_PUBLIC)
 	PHP_ME(Rados, lookup_pool, NULL, ZEND_ACC_PUBLIC)
-	PHP_ME(Rados, create,  NULL, ZEND_ACC_PUBLIC)
-	PHP_ME(Rados, __deconstruct,	NULL, ZEND_ACC_PUBLIC)
+	PHP_ME(Rados, create, NULL, ZEND_ACC_PUBLIC)
 	{NULL, NULL, NULL}
 };
 
@@ -122,6 +155,6 @@ zend_module_entry librados_module_entry = {
 
 #ifdef COMPILE_DL_LIBRADOS
 extern "C" {
-ZEND_GET_MODULE(librados)
+    ZEND_GET_MODULE(librados)
 }
 #endif
