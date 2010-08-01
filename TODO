@@ -1,0 +1,4 @@
+* Clean up the code, to many duplicate code like checking args, fetching the RADOS object
+* Make the resource parameter optional, like the MySQL extension
+* Support other config files then /etc/ceph/conf.conf or even specify a monitor address so no config is needed
+* Support other keyrings then reading from a file, maybe only a base64 keyname and name of the key? (Like the mount option of Ceph kclient)
