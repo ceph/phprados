@@ -1,1 +1,7 @@
 Nothing yet, in the future this should be a PHP extension to librados ( http://ceph.newdream.net/wiki/librados )
+
+Articles used for this extension:
+* http://devzone.zend.com/article/1021
+* http://devzone.zend.com/article/1022
+* http://devzone.zend.com/article/1024-Extension-Writing-Part-III-Resources
+* http://devzone.zend.com/article/4486-Wrapping-C-Classes-in-a-PHP-Extension
