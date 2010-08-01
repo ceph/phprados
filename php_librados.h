@@ -20,6 +20,8 @@ typedef struct _php_rados_pool {
 } php_rados_pool;
 
 #define PHP_RADOS_POOL_RES_NAME "RADOS Pool"
+/* Fix me! Should correspond with librados! */
+#define PHP_RADOS_POOL_MAX_LENGTH 128
 
 PHP_MINIT_FUNCTION(librados);
 
@@ -29,8 +31,13 @@ PHP_METHOD(Rados, initialize);
 /* Pool methods */
 PHP_METHOD(Rados, open_pool);
 PHP_METHOD(Rados, close_pool);
+PHP_METHOD(Rados, create_pool);
+PHP_METHOD(Rados, delete_pool);
 PHP_METHOD(Rados, lookup_pool);
-PHP_METHOD(Rados, create);
+PHP_METHOD(Rados, change_pool_auid);
+PHP_METHOD(Rados, list_pools);
+PHP_METHOD(Rados, snap_create);
+PHP_METHOD(Rados, snap_remove);
 
 extern zend_module_entry librados_module_entry;
 #define phpext_librados_ptr &librados_module_entry;
