@@ -171,9 +171,7 @@ PHP_MINIT_FUNCTION(librados)
 }
 
 zend_module_entry librados_module_entry = {
-#if ZEND_MODULE_API_NO >= 20010901
     STANDARD_MODULE_HEADER,
-#endif
     PHP_LIBRADOS_EXTNAME,
     NULL,                  /* Functions */
     PHP_MINIT(librados),
@@ -181,9 +179,7 @@ zend_module_entry librados_module_entry = {
     NULL,                  /* RINIT */
     NULL,                  /* RSHUTDOWN */
     NULL,                  /* MINFO */
-#if ZEND_MODULE_API_NO >= 20010901
     PHP_LIBRADOS_EXTVER,
-#endif
     STANDARD_MODULE_PROPERTIES
 };
 
