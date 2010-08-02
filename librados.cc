@@ -355,14 +355,91 @@ PHP_METHOD(Rados, list_objects)
 
 PHP_METHOD(Rados, create)
 {
+    php_rados_pool *pool_r;
+    char *oid=NULL;
+    int oid_len;
+    zval *zpool;
+    bool exclusive = false;
+
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "sr|b", &oid, &oid_len, &zpool, &exclusive) == FAILURE) {
+        RETURN_FALSE;
+    }
+
+    ZEND_FETCH_RESOURCE(pool_r, php_rados_pool*, &zpool, -1, PHP_RADOS_POOL_RES_NAME, le_rados_pool);
+
+    Rados *rados;
+    rados_object *obj = (rados_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
+    rados = obj->rados;
+
+    if (rados->create(pool_r->pool, oid, exclusive) < 0) {
+        RETURN_FALSE;
+    }
+
+    RETURN_TRUE;
 }
 
 PHP_METHOD(Rados, remove)
 {
+    php_rados_pool *pool_r;
+    char *oid=NULL;
+    int oid_len;
+    zval *zpool;
+
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "sr", &oid, &oid_len, &zpool) == FAILURE) {
+        RETURN_FALSE;
+    }
+
+    ZEND_FETCH_RESOURCE(pool_r, php_rados_pool*, &zpool, -1, PHP_RADOS_POOL_RES_NAME, le_rados_pool);
+
+    Rados *rados;
+    rados_object *obj = (rados_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
+    rados = obj->rados;
+
+    if (rados->remove(pool_r->pool, oid) < 0) {
+        RETURN_FALSE;
+    }
+
+    RETURN_TRUE;
 }
 
 PHP_METHOD(Rados, stat)
 {
+    php_rados_pool *pool_r;
+    char *oid=NULL;
+    int oid_len;
+    zval *zpool;
+    size_t size;
+    time_t mtime;
+
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "sr", &oid, &oid_len, &zpool) == FAILURE) {
+        RETURN_FALSE;
+    }
+
+    ZEND_FETCH_RESOURCE(pool_r, php_rados_pool*, &zpool, -1, PHP_RADOS_POOL_RES_NAME, le_rados_pool);
+
+    Rados *rados;
+    rados_object *obj = (rados_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
+    rados = obj->rados;
+
+    array_init(return_value);
+
+    if (rados->stat(pool_r->pool, oid, &size, &mtime) < 0) {
+        RETURN_FALSE;
+    }
+
+    stringstream size_s;
+    size_s << size;
+    char *size_buf = (char *)emalloc(sizeof(size_s.str().c_str()));
+    strcpy(size_buf, size_s.str().c_str());
+
+    stringstream mtime_s;
+    mtime_s << mtime;
+    char *mtime_buf = (char *)emalloc(sizeof(mtime_s.str().c_str()));
+    strcpy(mtime_buf, mtime_s.str().c_str());
+
+    add_assoc_string(return_value, "oid", oid, 1);
+    add_assoc_string(return_value, "size", size_buf, 2);
+    add_assoc_string(return_value, "mtime", mtime_buf, 3);
 }
 
 PHP_MINIT_FUNCTION(librados)
