@@ -5,3 +5,9 @@ Articles used for this extension:
 * http://devzone.zend.com/article/1022
 * http://devzone.zend.com/article/1024-Extension-Writing-Part-III-Resources
 * http://devzone.zend.com/article/4486-Wrapping-C-Classes-in-a-PHP-Extension
+
+Need libraries (Ubuntu / Debian):
+* libatomic-ops-dev (Needed for librados)
+* libcrush1(-dev)
+* librados1(-dev)
+* libceph1(-dev)
