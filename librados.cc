@@ -5,9 +5,9 @@
  *
  * This is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
- * License version 2.1, as published by the Free Software 
+ * License version 2.1, as published by the Free Software
  * Foundation.  See file COPYING.
- * 
+ *
  */
 
 #ifdef HAVE_CONFIG_H
@@ -187,13 +187,13 @@ PHP_METHOD(Rados, delete_pool)
 {
     php_rados_pool *pool_r;
     zval *zpool;
-    
+
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &zpool) == FAILURE) {
         RETURN_FALSE;
     }
-    
+
     ZEND_FETCH_RESOURCE(pool_r, php_rados_pool*, &zpool, -1, PHP_RADOS_POOL_RES_NAME, le_rados_pool);
-    
+
     Rados *rados;
     rados_object *obj = (rados_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
     rados = obj->rados;
@@ -208,15 +208,15 @@ PHP_METHOD(Rados, lookup_pool)
 {
     char *spool=NULL;
     int spool_len;
-    
+
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &spool, &spool_len) == FAILURE) {
         RETURN_NULL();
     }
-    
+
     if (spool_len > PHP_RADOS_POOL_MAX_LENGTH) {
         php_error_docref(NULL TSRMLS_CC, E_WARNING, "The specified RADOS poolname (%s) is too long!", spool);
     }
-    
+
     Rados *rados;
     rados_object *obj = (rados_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
     rados = obj->rados;
@@ -227,7 +227,7 @@ PHP_METHOD(Rados, lookup_pool)
     } else {
         RETURN_FALSE;
     }
-    
+
     RETURN_TRUE;
 }
 
@@ -236,11 +236,11 @@ PHP_METHOD(Rados, change_pool_auid)
     php_rados_pool *pool_r;
     zval *zpool;
     int auid;
-    
+
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &zpool, &auid) == FAILURE) {
         RETURN_FALSE;
     }
-    
+
     ZEND_FETCH_RESOURCE(pool_r, php_rados_pool*, &zpool, -1, PHP_RADOS_POOL_RES_NAME, le_rados_pool);
 
     Rados *rados;
@@ -279,7 +279,7 @@ PHP_METHOD(Rados, snap_create)
     zval *zpool;
     char *snapname=NULL;
     int snapname_len;
-    
+
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "sr", &snapname, &snapname_len, &zpool) == FAILURE) {
         RETURN_FALSE;
     }
@@ -306,16 +306,16 @@ PHP_METHOD(Rados, snap_remove)
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "sr", &snapname, &snapname_len, &zpool) == FAILURE) {
         RETURN_FALSE;
     }
-    
+
     ZEND_FETCH_RESOURCE(pool_r, php_rados_pool*, &zpool, -1, PHP_RADOS_POOL_RES_NAME, le_rados_pool);
-    
+
     Rados *rados;
     rados_object *obj = (rados_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
     rados = obj->rados;
     if (rados->snap_remove(pool_r->pool, snapname) < 0) {
         RETURN_FALSE;
     }
-    
+
     RETURN_TRUE;
 }
 
