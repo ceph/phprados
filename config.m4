@@ -1,11 +1,11 @@
-PHP_ARG_ENABLE(librados,
-    [Enable the librados extension],
-    [  --enable-librados[=DIR]      Enable "librados" extension support])
+PHP_ARG_ENABLE(rados,
+    [Enable the rados extension],
+    [  --enable-rados[=DIR]      Enable "RADOS" extension support])
 
-if test $PHP_LIBRADOS != "no"; then
+if test $PHP_RADOS != "no"; then
     PHP_REQUIRE_CXX()
-    PHP_SUBST(LIBRADOS_SHARED_LIBADD)
-    PHP_ADD_LIBRARY(rados,, LIBRADOS_SHARED_LIBADD)
-    PHP_ADD_LIBRARY(crypto,, LIBRADOS_SHARED_LIBADD)
-    PHP_NEW_EXTENSION(librados, librados.cc, $ext_shared)
+    PHP_SUBST(RADOS_SHARED_LIBADD)
+    PHP_ADD_LIBRARY(rados,, RADOS_SHARED_LIBADD)
+    PHP_ADD_LIBRARY(crypto,, RADOS_SHARED_LIBADD)
+    PHP_NEW_EXTENSION(rados, rados.cc, $ext_shared)
 fi
