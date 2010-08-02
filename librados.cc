@@ -1,3 +1,15 @@
+/*
+ * phprados - A PHP5 extension for using librados
+ *
+ * Copyright (C) 2010 Wido den Hollander <wido@widodh.nl>
+ *
+ * This is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License version 2.1, as published by the Free Software 
+ * Foundation.  See file COPYING.
+ * 
+ */
+
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
