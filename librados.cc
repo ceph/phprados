@@ -38,6 +38,10 @@ function_entry rados_methods[] = {
     PHP_ME(Rados, list_pools, NULL, ZEND_ACC_PUBLIC)
     PHP_ME(Rados, snap_create, NULL, ZEND_ACC_PUBLIC)
     PHP_ME(Rados, snap_remove, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, list_objects, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, create, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, remove, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, stat, NULL, ZEND_ACC_PUBLIC)
     {NULL, NULL, NULL}
 };
 
@@ -298,7 +302,7 @@ PHP_METHOD(Rados, snap_remove)
     zval *zpool;
     char *snapname=NULL;
     int snapname_len;
-    
+
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "sr", &snapname, &snapname_len, &zpool) == FAILURE) {
         RETURN_FALSE;
     }
@@ -313,6 +317,52 @@ PHP_METHOD(Rados, snap_remove)
     }
     
     RETURN_TRUE;
+}
+
+PHP_METHOD(Rados, list_objects)
+{
+    Rados::ListCtx ctx;
+    php_rados_pool *pool_r;
+    zval *zpool;
+    list<string>::iterator i;
+    int j, r = 0;
+
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &zpool) == FAILURE) {
+        RETURN_FALSE;
+    }
+
+    ZEND_FETCH_RESOURCE(pool_r, php_rados_pool*, &zpool, -1, PHP_RADOS_POOL_RES_NAME, le_rados_pool);
+
+    Rados *rados;
+    rados_object *obj = (rados_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
+    rados = obj->rados;
+
+    array_init(return_value);
+
+    rados->list_objects_open(pool_r->pool, &ctx);
+    do {
+        list<string> l;
+        r = rados->list_objects_more(ctx, PHP_RADOS_MAX_OBJECTS, l);
+        if (r < 0)
+            RETURN_NULL();
+
+        for (i = l.begin(); i != l.end(); ++i) {
+            add_next_index_string(return_value, i->c_str(), j++);
+        }
+    } while (r);
+    rados->list_objects_close(ctx);
+}
+
+PHP_METHOD(Rados, create)
+{
+}
+
+PHP_METHOD(Rados, remove)
+{
+}
+
+PHP_METHOD(Rados, stat)
+{
 }
 
 PHP_MINIT_FUNCTION(librados)
