@@ -1,11 +1,12 @@
 #ifndef PHP_RADOS_H
 #define PHP_RADOS_H
 
-#define PHP_RADOS_EXTNAME  "RADOS"
+#define PHP_RADOS_EXTNAME  "rados"
 #define PHP_RADOS_EXTVER   "0.9"
 
 extern "C" {
 #include "php.h"
+#include "zend_exceptions.h"
 #ifdef ZTS
 #include "TSRM.h"
 #endif
@@ -14,7 +15,8 @@ extern "C" {
 #include <string>
 #include <sstream>
 using namespace std;
-#include "rados/librados.hpp"
+
+#include <rados/librados.hpp>
 using namespace librados;
 
 typedef struct _php_rados_pool {
@@ -22,7 +24,7 @@ typedef struct _php_rados_pool {
 } php_rados_pool;
 
 #define PHP_RADOS_POOL_RES_NAME "RADOS Pool"
-/* Fix me! Should correspond with librados! */
+/** FIXME Should correspond with librados! */
 #define PHP_RADOS_POOL_MAX_LENGTH 128
 #define PHP_RADOS_MAX_OBJECTS 1024
 
@@ -49,6 +51,6 @@ PHP_METHOD(Rados, remove);
 PHP_METHOD(Rados, stat);
 
 extern zend_module_entry rados_module_entry;
-#define phpext_librados_ptr &rados_module_entry;
+#define phpext_rados_ptr &rados_module_entry;
 
 #endif

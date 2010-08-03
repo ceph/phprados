@@ -17,16 +17,19 @@
 #include "php_rados.h"
 
 zend_object_handlers rados_object_handlers;
-zend_class_entry *rados_ce;
+
+zend_class_entry *rados_rados_ce;
+zend_class_entry *rados_radosexception_ce;
 
 int le_rados_pool;
+bool g_rados_initialized = false;
 
 struct rados_object {
     zend_object std;
     Rados *rados;
 };
 
-function_entry rados_methods[] = {
+const zend_function_entry rados_rados_methods[] = {
     PHP_ME(Rados, __construct, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_CTOR)
     PHP_ME(Rados, initialize, NULL, ZEND_ACC_PUBLIC)
     PHP_ME(Rados, open_pool, NULL, ZEND_ACC_PUBLIC)
@@ -45,12 +48,16 @@ function_entry rados_methods[] = {
     {NULL, NULL, NULL}
 };
 
+const zend_function_entry php_rados_radosexception_methods[] = {
+    {NULL, NULL, NULL}
+};
+
 void rados_free_storage(void *object TSRMLS_DC)
 {
     Rados *rados;
     rados_object *obj = (rados_object *)object;
     rados = obj->rados;
-    if (rados != NULL) {
+    if (rados != NULL && g_rados_initialized) {
         rados->shutdown();
     }
     delete obj->rados;
@@ -101,10 +108,9 @@ PHP_METHOD(Rados, initialize)
     rados_object *obj = (rados_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
     rados = obj->rados;
     if (rados->initialize(argc, argv) < 0) {
-        php_error_docref(NULL TSRMLS_CC, E_WARNING, "Failed to initialize RADOS!");
-        RETURN_NULL();
+        zend_throw_exception(rados_radosexception_ce, "Failed to initialize RADOS!", 0);
     }
-
+    g_rados_initialized = true;
     RETURN_TRUE;
 }
 
@@ -446,11 +452,18 @@ PHP_MINIT_FUNCTION(rados)
 {
     le_rados_pool = zend_register_list_destructors_ex(NULL, NULL, PHP_RADOS_POOL_RES_NAME, module_number);
     zend_class_entry ce;
-    INIT_CLASS_ENTRY(ce, "Rados", rados_methods);
-    rados_ce = zend_register_internal_class(&ce TSRMLS_CC);
-    rados_ce->create_object = rados_create_handler;
-    memcpy(&rados_object_handlers,zend_get_std_object_handlers(), sizeof(zend_object_handlers));
+
+    INIT_CLASS_ENTRY(ce, "Rados", rados_rados_methods);
+    rados_rados_ce = zend_register_internal_class(&ce TSRMLS_CC);
+    rados_rados_ce->create_object = rados_create_handler;
+    memcpy(&rados_object_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
     rados_object_handlers.clone_obj = NULL;
+
+    INIT_CLASS_ENTRY(ce, "RadosException", php_rados_radosexception_methods);
+    rados_radosexception_ce = zend_register_internal_class_ex(&ce, zend_exception_get_default(TSRMLS_C), NULL TSRMLS_CC);
+    rados_radosexception_ce->ce_flags |= ZEND_ACC_FINAL;
+    zend_declare_property_long(rados_radosexception_ce, "code", sizeof("code")-1, 0, ZEND_ACC_PUBLIC TSRMLS_CC);
+
     return SUCCESS;
 }
 
