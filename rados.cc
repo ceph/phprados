@@ -414,7 +414,7 @@ PHP_METHOD(Rados, stat)
     char *oid=NULL;
     int oid_len;
     zval *zpool;
-    size_t size;
+    uint64_t size;
     time_t mtime;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "sr", &oid, &oid_len, &zpool) == FAILURE) {
