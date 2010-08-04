@@ -108,11 +108,13 @@ PHP_METHOD(Rados, initialize)
     Rados *rados;
 
     rados_object *obj = (rados_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
-    rados = obj->rados;
-    if (rados->initialize(argc, argv) < 0) {
-        zend_throw_exception(rados_radosexception_ce, "Failed to initialize RADOS!", 0);
+    if (!obj->initialized) {
+        rados = obj->rados;
+        if (rados->initialize(argc, argv) < 0) {
+            zend_throw_exception(rados_radosexception_ce, "Failed to initialize RADOS!", 0);
+        }
+        obj->initialized = true;
     }
-    obj->initialized = true;
     RETURN_TRUE;
 }
 
