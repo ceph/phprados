@@ -127,15 +127,14 @@ PHP_METHOD(Rados, open_pool)
     }
 
     if (spool_len > PHP_RADOS_POOL_MAX_LENGTH) {
-        php_error_docref(NULL TSRMLS_CC, E_WARNING, "The specified RADOS poolname (%s) is too long!", spool);
+        zend_throw_exception(rados_radosexception_ce, "The specified RADOS poolname is too long!", 0);
     }
 
     Rados *rados;
     rados_object *obj = (rados_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
     rados = obj->rados;
     if(rados->open_pool(spool, &pool) < 0) {
-        php_error_docref(NULL TSRMLS_CC, E_WARNING, "The specified RADOS pool (%s) could not be opened.", spool);
-        RETURN_NULL();
+        zend_throw_exception(rados_radosexception_ce, "The specified RADOS pool could not be opened.", 0);
     }
 
     pool_r = (php_rados_pool *)emalloc(sizeof(php_rados_pool));
@@ -176,7 +175,7 @@ PHP_METHOD(Rados, create_pool)
     }
 
     if (spool_len > PHP_RADOS_POOL_MAX_LENGTH) {
-        zend_throw_exception(rados_radosexception_ce, "The specified RADOS poolname (%s) is too long!", 0);
+        zend_throw_exception(rados_radosexception_ce, "The specified RADOS poolname is too long!", 0);
     }
 
     Rados *rados;
