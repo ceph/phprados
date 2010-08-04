@@ -22,11 +22,14 @@ zend_class_entry *rados_rados_ce;
 zend_class_entry *rados_radosexception_ce;
 
 int le_rados_pool;
-bool g_rados_initialized = false;
 
 struct rados_object {
     zend_object std;
     Rados *rados;
+    bool initialized;
+    rados_object() {
+      initialized = false;
+    }
 };
 
 const zend_function_entry rados_rados_methods[] = {
@@ -57,7 +60,7 @@ void rados_free_storage(void *object TSRMLS_DC)
     Rados *rados;
     rados_object *obj = (rados_object *)object;
     rados = obj->rados;
-    if (rados != NULL && g_rados_initialized) {
+    if (rados != NULL && obj->initialized) {
         rados->shutdown();
     }
     delete obj->rados;
@@ -81,8 +84,7 @@ zend_object_value rados_create_handler(zend_class_entry *type TSRMLS_DC)
     zend_hash_init(obj->std.properties, 0, NULL, ZVAL_PTR_DTOR, 0);
     zend_hash_copy(obj->std.properties, &type->default_properties, (copy_ctor_func_t)zval_add_ref, (void *)&tmp, sizeof(zval *));
 
-    retval.handle = zend_objects_store_put(obj, NULL,
-    rados_free_storage, NULL TSRMLS_CC);
+    retval.handle = zend_objects_store_put(obj, NULL, rados_free_storage, NULL TSRMLS_CC);
     retval.handlers = &rados_object_handlers;
 
     return retval;
@@ -110,7 +112,7 @@ PHP_METHOD(Rados, initialize)
     if (rados->initialize(argc, argv) < 0) {
         zend_throw_exception(rados_radosexception_ce, "Failed to initialize RADOS!", 0);
     }
-    g_rados_initialized = true;
+    obj->initialized = true;
     RETURN_TRUE;
 }
 
