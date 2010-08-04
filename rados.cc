@@ -261,8 +261,8 @@ PHP_METHOD(Rados, change_pool_auid)
 
 PHP_METHOD(Rados, list_pools)
 {
-    std::list<string> pools;
-    std::list<string>::iterator i;
+    std::list<std::string> pools;
+    std::list<std::string>::iterator i;
 
     Rados *rados;
     rados_object *obj = (rados_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
@@ -330,7 +330,7 @@ PHP_METHOD(Rados, list_objects)
     Rados::ListCtx ctx;
     php_rados_pool *pool_r;
     zval *zpool;
-    list<string>::iterator i;
+    std::list<std::string>::iterator i;
     int j, r = 0;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &zpool) == FAILURE) {
@@ -347,7 +347,7 @@ PHP_METHOD(Rados, list_objects)
 
     rados->list_objects_open(pool_r->pool, &ctx);
     do {
-        list<string> l;
+        std::list<std::string> l;
         r = rados->list_objects_more(ctx, PHP_RADOS_MAX_OBJECTS, l);
         if (r < 0)
             RETURN_NULL();
@@ -433,12 +433,12 @@ PHP_METHOD(Rados, stat)
         RETURN_FALSE;
     }
 
-    stringstream size_s;
+    std::stringstream size_s;
     size_s << size;
     char *size_buf = (char *)emalloc(sizeof(size_s.str().c_str()));
     strcpy(size_buf, size_s.str().c_str());
 
-    stringstream mtime_s;
+    std::stringstream mtime_s;
     mtime_s << mtime;
     char *mtime_buf = (char *)emalloc(sizeof(mtime_s.str().c_str()));
     strcpy(mtime_buf, mtime_s.str().c_str());

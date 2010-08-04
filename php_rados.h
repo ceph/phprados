@@ -14,8 +14,6 @@ extern "C" {
 
 #include <string>
 #include <sstream>
-using namespace std;
-
 #include <rados/librados.hpp>
 using namespace librados;
 
