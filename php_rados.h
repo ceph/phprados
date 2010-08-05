@@ -2,11 +2,13 @@
 #define PHP_RADOS_H
 
 #define PHP_RADOS_EXTNAME  "rados"
-#define PHP_RADOS_EXTVER   "0.9"
+#define PHP_RADOS_EXTVER   "0.9.0"
 
 extern "C" {
 #include "php.h"
+#include "php_ini.h"
 #include "zend_exceptions.h"
+#include "ext/standard/info.h"
 #ifdef ZTS
 #include "TSRM.h"
 #endif
@@ -27,6 +29,8 @@ typedef struct _php_rados_pool {
 #define PHP_RADOS_MAX_OBJECTS 1024
 
 PHP_MINIT_FUNCTION(rados);
+PHP_MSHUTDOWN_FUNCTION(rados);
+PHP_MINFO_FUNCTION(rados);
 
 PHP_METHOD(Rados, __construct);
 PHP_METHOD(Rados, initialize);

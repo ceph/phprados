@@ -451,8 +451,17 @@ PHP_METHOD(Rados, stat)
     add_assoc_string(return_value, "mtime", mtime_buf, 3);
 }
 
+PHP_INI_BEGIN()
+    PHP_INI_ENTRY("rados.config_file", NULL, PHP_INI_ALL, NULL)
+    PHP_INI_ENTRY("rados.monitor_ip", NULL, PHP_INI_ALL, NULL)
+    PHP_INI_ENTRY("rados.cephx_keyfile", NULL, PHP_INI_ALL, NULL)
+    PHP_INI_ENTRY("rados.cephx_keyring", NULL, PHP_INI_ALL, NULL)
+PHP_INI_END()
+
 PHP_MINIT_FUNCTION(rados)
 {
+    REGISTER_INI_ENTRIES();
+
     le_rados_pool = zend_register_list_destructors_ex(NULL, NULL, PHP_RADOS_POOL_RES_NAME, module_number);
     zend_class_entry ce;
 
@@ -470,15 +479,31 @@ PHP_MINIT_FUNCTION(rados)
     return SUCCESS;
 }
 
+PHP_MSHUTDOWN_FUNCTION(rados)
+{
+  UNREGISTER_INI_ENTRIES();
+  return SUCCESS;
+}
+
+PHP_MINFO_FUNCTION(rados)
+{
+    php_info_print_table_start();
+    php_info_print_table_row(2, "Rados", "enabled");
+    php_info_print_table_row(2, "Rados extension version", PHP_RADOS_EXTVER);
+    php_info_print_table_end();
+
+    DISPLAY_INI_ENTRIES();
+}
+
 zend_module_entry rados_module_entry = {
     STANDARD_MODULE_HEADER,
     PHP_RADOS_EXTNAME,
     NULL,                  /* Functions */
-    PHP_MINIT(rados),
-    NULL,                  /* MSHUTDOWN */
+    PHP_MINIT(rados),      /* MINIT */
+    PHP_MSHUTDOWN(rados),  /* MSHUTDOWN */
     NULL,                  /* RINIT */
     NULL,                  /* RSHUTDOWN */
-    NULL,                  /* MINFO */
+    PHP_MINFO(rados),      /* MINFO */
     PHP_RADOS_EXTVER,
     STANDARD_MODULE_PROPERTIES
 };
