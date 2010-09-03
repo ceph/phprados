@@ -44,7 +44,7 @@ const zend_function_entry rados_rados_methods[] = {
     PHP_ME(Rados, list_pools, NULL, ZEND_ACC_PUBLIC)
     PHP_ME(Rados, snap_create, NULL, ZEND_ACC_PUBLIC)
     PHP_ME(Rados, snap_remove, NULL, ZEND_ACC_PUBLIC)
-    PHP_ME(Rados, list_objects, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, list_objects_open, NULL, ZEND_ACC_PUBLIC)
     PHP_ME(Rados, create, NULL, ZEND_ACC_PUBLIC)
     PHP_ME(Rados, remove, NULL, ZEND_ACC_PUBLIC)
     PHP_ME(Rados, stat, NULL, ZEND_ACC_PUBLIC)
@@ -360,7 +360,7 @@ PHP_METHOD(Rados, snap_remove)
     RETURN_TRUE;
 }
 
-PHP_METHOD(Rados, list_objects)
+PHP_METHOD(Rados, list_objects_open)
 {
     Rados::ListCtx ctx;
     php_rados_pool *pool_r;
