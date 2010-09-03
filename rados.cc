@@ -103,12 +103,39 @@ PHP_METHOD(Rados, __construct)
 
 PHP_METHOD(Rados, initialize)
 {
-    int argc = 1;
-    const char *argv[0];
     Rados *rados;
 
     rados_object *obj = (rados_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
     if (!obj->initialized) {
+
+	int argc = 1;
+	const char *argv[0];
+
+	if (INI_STR("rados.monitor_ip") != NULL) {
+		argv[argc++] = "-m";
+		argv[argc++] = INI_STR("rados.monitor_ip");
+	}
+
+	if (INI_STR("rados.cephx_keyfile") != NULL) {
+		argv[argc++] = "-K";
+		argv[argc++] = INI_STR("rados.cephx_keyfile");
+	}
+
+	if (INI_STR("rados.cephx_keyring") != NULL) {
+		argv[argc++] = "-k";
+		argv[argc++] = INI_STR("rados.cephx_keyring");
+	}
+
+	if (INI_STR("rados.cephx_name") != NULL) {
+		argv[argc++] = "-n";
+		argv[argc++] = INI_STR("rados.cephx_name");
+	}
+
+	if (INI_STR("rados.config_file") != NULL) {
+		argv[argc++] = "-c";
+		argv[argc++] = INI_STR("rados.config_file");
+	}
+
         rados = obj->rados;
         if (rados->initialize(argc, argv) < 0) {
             zend_throw_exception(rados_radosexception_ce, "Failed to initialize RADOS!", 0);
@@ -456,6 +483,7 @@ PHP_INI_BEGIN()
     PHP_INI_ENTRY("rados.monitor_ip", NULL, PHP_INI_ALL, NULL)
     PHP_INI_ENTRY("rados.cephx_keyfile", NULL, PHP_INI_ALL, NULL)
     PHP_INI_ENTRY("rados.cephx_keyring", NULL, PHP_INI_ALL, NULL)
+    PHP_INI_ENTRY("rados.cephx_name", NULL, PHP_INI_ALL, NULL)
 PHP_INI_END()
 
 PHP_MINIT_FUNCTION(rados)
