@@ -289,7 +289,7 @@ PHP_METHOD(Rados, snap_create)
     char *snapname=NULL;
     int snapname_len;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "sr", &snapname, &snapname_len, &zpool) == FAILURE) {
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &zpool, &snapname, &snapname_len) == FAILURE) {
         RETURN_FALSE;
     }
 
@@ -312,7 +312,7 @@ PHP_METHOD(Rados, snap_remove)
     char *snapname=NULL;
     int snapname_len;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "sr", &snapname, &snapname_len, &zpool) == FAILURE) {
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &zpool, &snapname, &snapname_len) == FAILURE) {
         RETURN_FALSE;
     }
 
@@ -370,7 +370,7 @@ PHP_METHOD(Rados, create)
     zval *zpool;
     bool exclusive = false;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "sr|b", &oid, &oid_len, &zpool, &exclusive) == FAILURE) {
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs|b", &zpool, &oid, &oid_len, &exclusive) == FAILURE) {
         RETURN_FALSE;
     }
 
@@ -394,7 +394,7 @@ PHP_METHOD(Rados, remove)
     int oid_len;
     zval *zpool;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "sr", &oid, &oid_len, &zpool) == FAILURE) {
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &zpool, &oid, &oid_len) == FAILURE) {
         RETURN_FALSE;
     }
 
@@ -420,7 +420,7 @@ PHP_METHOD(Rados, stat)
     uint64_t size;
     time_t mtime;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "sr", &oid, &oid_len, &zpool) == FAILURE) {
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &zpool, &oid, &oid_len) == FAILURE) {
         RETURN_FALSE;
     }
 
