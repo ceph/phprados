@@ -23,7 +23,12 @@ typedef struct _php_rados_pool {
     pool_t pool;
 } php_rados_pool;
 
+typedef struct _php_rados_listctx {
+    Rados::ListCtx ctx;
+} php_rados_listctx;
+
 #define PHP_RADOS_POOL_RES_NAME "RADOS Pool"
+#define PHP_RADOS_LISTCTX_RES_NAME "RADOS List CTX"
 /** FIXME Should correspond with librados! */
 #define PHP_RADOS_POOL_MAX_LENGTH 128
 #define PHP_RADOS_MAX_OBJECTS 1024
@@ -46,6 +51,9 @@ PHP_METHOD(Rados, list_pools);
 PHP_METHOD(Rados, snap_create);
 PHP_METHOD(Rados, snap_remove);
 PHP_METHOD(Rados, list_objects);
+PHP_METHOD(Rados, list_objects_open);
+PHP_METHOD(Rados, list_objects_more);
+PHP_METHOD(Rados, list_objects_close);
 
 /* Object methods */
 PHP_METHOD(Rados, create);
