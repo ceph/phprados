@@ -607,7 +607,8 @@ PHP_METHOD(Rados, write)
     char *oid=NULL;
     char *data=NULL;
     int oid_len;
-    long data_len, offset = 0;
+    long data_len;
+    off_t offset = 0;
     zval *zpool;
     bufferlist bl;
     
@@ -633,7 +634,8 @@ PHP_METHOD(Rados, read)
     php_rados_pool *pool_r;
     char *oid=NULL;
     int oid_len;
-    long size, offset = 0;
+    size_t size;
+    off_t offset = 0;
     zval *zpool;
     bufferlist bl;
     
@@ -695,7 +697,7 @@ PHP_METHOD(Rados, trunc)
     php_rados_pool *pool_r;
     char *oid=NULL;
     int oid_len;
-    long size;
+    size_t size;
     zval *zpool;
     
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rsl|l", &zpool, &oid, &oid_len, &size) == FAILURE) {
