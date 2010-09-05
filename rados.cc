@@ -643,7 +643,7 @@ PHP_METHOD(Rados, read)
         RETURN_FALSE;
     }
 
-    if (size < 0) {
+    if ((int)size < 0) {
         zend_throw_exception(rados_radosexception_ce, "Reading a negative size is not possible!", 0 TSRMLS_CC);
         return;
     }
@@ -704,7 +704,7 @@ PHP_METHOD(Rados, trunc)
         RETURN_FALSE;
     }
     
-    if (size < 0) {
+    if ((int)size < 0) {
         zend_throw_exception(rados_radosexception_ce, "Truncating with a negative size is not possible!", 0 TSRMLS_CC);
         return;
     }
