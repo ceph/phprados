@@ -578,7 +578,8 @@ PHP_METHOD(Rados, write_full)
     php_rados_pool *pool_r;
     char *oid=NULL;
     char *data=NULL;
-    int oid_len, data_len;
+    int oid_len;
+    long data_len;
     zval *zpool;
     bufferlist bl;
     
@@ -604,7 +605,8 @@ PHP_METHOD(Rados, write)
     php_rados_pool *pool_r;
     char *oid=NULL;
     char *data=NULL;
-    int oid_len, data_len, offset = 0;
+    int oid_len;
+    long data_len, offset = 0;
     zval *zpool;
     bufferlist bl;
     
@@ -629,7 +631,8 @@ PHP_METHOD(Rados, read)
 {
     php_rados_pool *pool_r;
     char *oid=NULL;
-    int oid_len, size, offset = 0;
+    int oid_len;
+    long size, offset = 0;
     zval *zpool;
     bufferlist bl;
     
