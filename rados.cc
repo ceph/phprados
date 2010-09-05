@@ -56,6 +56,7 @@ const zend_function_entry rados_rados_methods[] = {
     PHP_ME(Rados, write, NULL, ZEND_ACC_PUBLIC)
     PHP_ME(Rados, read, NULL, ZEND_ACC_PUBLIC)
     PHP_ME(Rados, read_full, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, trunc, NULL, ZEND_ACC_PUBLIC)
     {NULL, NULL, NULL}
 };
 
@@ -687,6 +688,34 @@ PHP_METHOD(Rados, read_full)
     }
     
     RETURN_STRINGL(bl.c_str(), size, 1);
+}
+
+PHP_METHOD(Rados, trunc)
+{
+    php_rados_pool *pool_r;
+    char *oid=NULL;
+    int oid_len;
+    long size;
+    zval *zpool;
+    
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rsl|l", &zpool, &oid, &oid_len, &size) == FAILURE) {
+        RETURN_FALSE;
+    }
+    
+    if (size < 0) {
+        zend_throw_exception(rados_radosexception_ce, "Truncating with a negative size is not possible!", 0 TSRMLS_CC);
+        return;
+    }
+    
+    ZEND_FETCH_RESOURCE(pool_r, php_rados_pool*, &zpool, -1, PHP_RADOS_POOL_RES_NAME, le_rados_pool);
+    
+    Rados *rados;
+    rados_object *obj = (rados_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
+    rados = obj->rados;
+    
+    if (rados->trunc(pool_r->pool, oid, size) < 0) {
+        RETURN_FALSE;
+    }
 }
 
 PHP_INI_BEGIN()
