@@ -57,6 +57,7 @@ const zend_function_entry rados_rados_methods[] = {
     PHP_ME(Rados, read, NULL, ZEND_ACC_PUBLIC)
     PHP_ME(Rados, read_full, NULL, ZEND_ACC_PUBLIC)
     PHP_ME(Rados, trunc, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, getxattr, NULL, ZEND_ACC_PUBLIC)
     {NULL, NULL, NULL}
 };
 
@@ -700,7 +701,7 @@ PHP_METHOD(Rados, trunc)
     size_t size;
     zval *zpool;
     
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rsl|l", &zpool, &oid, &oid_len, &size) == FAILURE) {
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rsl", &zpool, &oid, &oid_len, &size) == FAILURE) {
         RETURN_FALSE;
     }
     
@@ -718,6 +719,31 @@ PHP_METHOD(Rados, trunc)
     if (rados->trunc(pool_r->pool, oid, size) < 0) {
         RETURN_FALSE;
     }
+}
+
+PHP_METHOD(Rados, getxattr)
+{
+    php_rados_pool *pool_r;
+    char *oid, *xattr=NULL;
+    int oid_len, xattr_len;
+    zval *zpool;
+    bufferlist bl;
+    
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rss", &zpool, &oid, &oid_len, &xattr, &xattr_len) == FAILURE) {
+        RETURN_FALSE;
+    }
+
+    ZEND_FETCH_RESOURCE(pool_r, php_rados_pool*, &zpool, -1, PHP_RADOS_POOL_RES_NAME, le_rados_pool);
+    
+    Rados *rados;
+    rados_object *obj = (rados_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
+    rados = obj->rados;
+    
+    if (rados->getxattr(pool_r->pool, oid, xattr, bl) < 0) {
+        RETURN_FALSE;
+    }
+
+    RETURN_STRINGL(bl.c_str(), strlen(bl.c_str()), 1);
 }
 
 PHP_INI_BEGIN()
