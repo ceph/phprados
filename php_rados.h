@@ -64,6 +64,8 @@ PHP_METHOD(Rados, write);
 PHP_METHOD(Rados, read);
 PHP_METHOD(Rados, read_full);
 PHP_METHOD(Rados, trunc);
+PHP_METHOD(Rados, getxattr);
+PHP_METHOD(Rados, setxattr);
 
 extern zend_module_entry rados_module_entry;
 #define phpext_rados_ptr &rados_module_entry;
