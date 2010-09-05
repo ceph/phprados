@@ -59,6 +59,7 @@ const zend_function_entry rados_rados_methods[] = {
     PHP_ME(Rados, trunc, NULL, ZEND_ACC_PUBLIC)
     PHP_ME(Rados, getxattr, NULL, ZEND_ACC_PUBLIC)
     PHP_ME(Rados, setxattr, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, getxattrs, NULL, ZEND_ACC_PUBLIC)
     {NULL, NULL, NULL}
 };
 
@@ -770,6 +771,37 @@ PHP_METHOD(Rados, setxattr)
     if (rados->setxattr(pool_r->pool, oid, xattr, bl) < 0) {
         RETURN_FALSE;
     }
+}
+
+PHP_METHOD(Rados, getxattrs)
+{
+    php_rados_pool *pool_r;
+    char *oid=NULL;
+    int oid_len;
+    zval *zpool;
+    std::map<std::string, bufferlist> attrset;
+    
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &zpool, &oid, &oid_len) == FAILURE) {
+        RETURN_FALSE;
+    }
+    
+    ZEND_FETCH_RESOURCE(pool_r, php_rados_pool*, &zpool, -1, PHP_RADOS_POOL_RES_NAME, le_rados_pool);
+    
+    Rados *rados;
+    rados_object *obj = (rados_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
+    rados = obj->rados;
+    
+    if (rados->getxattrs(pool_r->pool, oid, attrset) < 0) {
+        RETURN_FALSE;
+    }
+
+    array_init(return_value);
+    int j = 0;
+    for(std::map<std::string, bufferlist>::iterator i = attrset.begin(); i != attrset.end(); ++i) {
+        add_assoc_string(return_value, i->first.c_str(), i->second.c_str(), j);
+        j++;
+    }
+    
 }
 
 PHP_INI_BEGIN()
