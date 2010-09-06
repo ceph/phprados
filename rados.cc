@@ -330,8 +330,7 @@ PHP_METHOD(Rados, list_pools)
     array_init(return_value);
     int j = 0;
     for (i = pools.begin(); i != pools.end(); i++) {
-        add_next_index_string(return_value, i->c_str(), j);
-        j++;
+        add_next_index_string(return_value, i->c_str(), j++);
     }
 }
 
@@ -853,8 +852,7 @@ PHP_METHOD(Rados, getxattrs)
     array_init(return_value);
     int j = 0;
     for(std::map<std::string, bufferlist>::iterator i = attrset.begin(); i != attrset.end(); ++i) {
-        add_assoc_string(return_value, i->first.c_str(), i->second.c_str(), j);
-        j++;
+        add_assoc_string(return_value, i->first.c_str(), i->second.c_str(), j++);
     }
 
 }
