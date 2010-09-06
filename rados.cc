@@ -61,6 +61,7 @@ const zend_function_entry rados_rados_methods[] = {
     PHP_ME(Rados, setxattr, NULL, ZEND_ACC_PUBLIC)
     PHP_ME(Rados, getxattrs, NULL, ZEND_ACC_PUBLIC)
     PHP_ME(Rados, get_pool_stats, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, get_fs_stats, NULL, ZEND_ACC_PUBLIC)
     {NULL, NULL, NULL}
 };
 
@@ -387,6 +388,24 @@ PHP_METHOD(Rados, get_pool_stats)
 
         add_assoc_zval(return_value, i->first.c_str(), pool_stats);
     }
+}
+
+PHP_METHOD(Rados, get_fs_stats)
+{
+    statfs_t stats;
+
+    Rados *rados;
+    rados_object *obj = (rados_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
+    rados = obj->rados;
+    if(rados->get_fs_stats(stats) < 0) {
+        RETURN_FALSE;
+    }
+
+    array_init(return_value);
+    add_assoc_string(return_value, "kb", uint642char(stats.kb), 0);
+    add_assoc_string(return_value, "kb_used", uint642char(stats.kb_used), 1);
+    add_assoc_string(return_value, "kb_avail", uint642char(stats.kb_avail), 2);
+    add_assoc_string(return_value, "num_objects", uint642char(stats.num_objects), 3);
 }
 
 PHP_METHOD(Rados, snap_create)
