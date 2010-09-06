@@ -54,6 +54,7 @@ PHP_METHOD(Rados, list_objects);
 PHP_METHOD(Rados, list_objects_open);
 PHP_METHOD(Rados, list_objects_more);
 PHP_METHOD(Rados, list_objects_close);
+PHP_METHOD(Rados, get_pool_stats);
 
 /* Object methods */
 PHP_METHOD(Rados, create);
