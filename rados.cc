@@ -46,6 +46,7 @@ const zend_function_entry rados_rados_methods[] = {
     PHP_ME(Rados, snap_create, NULL, ZEND_ACC_PUBLIC)
     PHP_ME(Rados, snap_remove, NULL, ZEND_ACC_PUBLIC)
     PHP_ME(Rados, selfmanaged_snap_create, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, snap_rollback_object, NULL, ZEND_ACC_PUBLIC)
     PHP_ME(Rados, list_objects, NULL, ZEND_ACC_PUBLIC)
     PHP_ME(Rados, list_objects_open, NULL, ZEND_ACC_PUBLIC)
     PHP_ME(Rados, list_objects_more, NULL, ZEND_ACC_PUBLIC)
@@ -475,6 +476,29 @@ PHP_METHOD(Rados, selfmanaged_snap_create)
     }
 
     RETURN_STRINGL(uint642char(snapid), sizeof(snapid), 1);
+}
+
+PHP_METHOD(Rados, snap_rollback_object)
+{
+    php_rados_pool *pool_r;
+    zval *zpool;
+    char *oid, *snapname=NULL;
+    int oid_len, snapname_len;
+
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rss", &zpool, &oid, &oid_len, &snapname, &snapname_len) == FAILURE) {
+        RETURN_FALSE;
+    }
+
+    ZEND_FETCH_RESOURCE(pool_r, php_rados_pool*, &zpool, -1, PHP_RADOS_POOL_RES_NAME, le_rados_pool);
+
+    Rados *rados;
+    rados_object *obj = (rados_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
+    rados = obj->rados;
+    if (rados->snap_rollback_object(pool_r->pool, oid, snapname) < 0) {
+        RETURN_FALSE;
+    }
+
+    RETURN_TRUE;
 }
 
 PHP_METHOD(Rados, list_objects)
