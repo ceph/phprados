@@ -627,19 +627,9 @@ PHP_METHOD(Rados, stat)
         RETURN_FALSE;
     }
 
-    std::stringstream size_s;
-    size_s << size;
-    char *size_buf = (char *)emalloc(sizeof(size_s.str().c_str()));
-    strcpy(size_buf, size_s.str().c_str());
-
-    std::stringstream mtime_s;
-    mtime_s << mtime;
-    char *mtime_buf = (char *)emalloc(sizeof(mtime_s.str().c_str()));
-    strcpy(mtime_buf, mtime_s.str().c_str());
-
     add_assoc_string(return_value, "oid", oid, 1);
-    add_assoc_string(return_value, "size", size_buf, 2);
-    add_assoc_string(return_value, "mtime", mtime_buf, 3);
+    add_assoc_string(return_value, "size", uint642char(size), 2);
+    add_assoc_string(return_value, "mtime", uint642char(mtime), 3);
 }
 
 PHP_METHOD(Rados, write_full)
