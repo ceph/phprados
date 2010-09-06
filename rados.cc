@@ -318,7 +318,6 @@ PHP_METHOD(Rados, change_pool_auid)
 PHP_METHOD(Rados, list_pools)
 {
     std::list<std::string> pools;
-    std::list<std::string>::iterator i;
 
     Rados *rados;
     rados_object *obj = (rados_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
@@ -329,7 +328,7 @@ PHP_METHOD(Rados, list_pools)
 
     array_init(return_value);
     int j = 0;
-    for (i = pools.begin(); i != pools.end(); i++) {
+    for (std::list<std::string>::iterator i = pools.begin(); i != pools.end(); i++) {
         add_next_index_string(return_value, i->c_str(), j++);
     }
 }
@@ -441,7 +440,6 @@ PHP_METHOD(Rados, list_objects)
     Rados::ListCtx ctx;
     php_rados_pool *pool_r;
     zval *zpool;
-    std::list<std::string>::iterator i;
     int j, r = 0;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &zpool) == FAILURE) {
@@ -463,7 +461,7 @@ PHP_METHOD(Rados, list_objects)
         if (r < 0)
             RETURN_NULL();
 
-        for (i = l.begin(); i != l.end(); ++i) {
+        for (std::list<std::string>::iterator i = l.begin(); i != l.end(); ++i) {
             add_next_index_string(return_value, i->c_str(), j++);
         }
     } while (r);
@@ -499,7 +497,6 @@ PHP_METHOD(Rados, list_objects_open)
 PHP_METHOD(Rados, list_objects_more)
 {
     php_rados_listctx *listctx_r;
-    std::list<std::string>::iterator i;
     zval *zctx;
     int maxobjects;
     int j, r = 0;
@@ -527,7 +524,7 @@ PHP_METHOD(Rados, list_objects_more)
         if (r < 0)
             RETURN_NULL();
 
-        for (i = l.begin(); i != l.end(); ++i) {
+        for (std::list<std::string>::iterator i = l.begin(); i != l.end(); ++i) {
             add_next_index_string(return_value, i->c_str(), j++);
         }
     } while (r);
