@@ -483,7 +483,7 @@ PHP_METHOD(Rados, snap_list)
     array_init(return_value);
 
     int j = 0;
-    for (std::vector<snap_t>::iterator i = snaps.begin(); i != snaps.end(); ++i) {
+    for (std::vector<snap_t>::iterator i = snaps.begin(); i != snaps.end(); i++) {
         add_next_index_string(return_value, uint642char(*i), j++);
     }
 }
