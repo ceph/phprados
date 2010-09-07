@@ -48,6 +48,7 @@ const zend_function_entry rados_rados_methods[] = {
     PHP_ME(Rados, snap_list, NULL, ZEND_ACC_PUBLIC)
     PHP_ME(Rados, snap_get_name, NULL, ZEND_ACC_PUBLIC)
     PHP_ME(Rados, snap_get_stamp, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, snap_lookup, NULL, ZEND_ACC_PUBLIC)
     PHP_ME(Rados, selfmanaged_snap_create, NULL, ZEND_ACC_PUBLIC)
     PHP_ME(Rados, selfmanaged_snap_remove, NULL, ZEND_ACC_PUBLIC)
     PHP_ME(Rados, snap_rollback_object, NULL, ZEND_ACC_PUBLIC)
@@ -535,6 +536,31 @@ PHP_METHOD(Rados, snap_get_stamp)
     std::stringstream timestamp;
     timestamp << (int)stamp;
     RETURN_STRINGL(timestamp.str().c_str(), timestamp.str().length(), 1);
+}
+
+PHP_METHOD(Rados, snap_lookup)
+{
+    php_rados_pool *pool_r;
+    zval *zpool;
+    char *snapname=NULL;
+    int snapname_len;
+    snap_t snapid;
+    
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &zpool, &snapname, &snapname_len) == FAILURE) {
+        RETURN_FALSE;
+    }
+    
+    ZEND_FETCH_RESOURCE(pool_r, php_rados_pool*, &zpool, -1, PHP_RADOS_POOL_RES_NAME, le_rados_pool);
+    
+    Rados *rados;
+    rados_object *obj = (rados_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
+    rados = obj->rados;
+    
+    if (rados->snap_lookup(pool_r->pool, snapname, &snapid) < 0) {
+        RETURN_FALSE;
+    }
+
+    RETURN_STRINGL(uint642char(snapid), sizeof(uint642char(snapid))-2, 1);
 }
 
 PHP_METHOD(Rados, selfmanaged_snap_create)
