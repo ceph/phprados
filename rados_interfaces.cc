@@ -15,12 +15,12 @@ ZEND_BEGIN_ARG_INFO(arginfo_rados_void, 0)
 ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_INFO(arginfo_rados_radosproxy_setrados, 0)
-    ZEND_ARG_INFO(1, "rados")
+    ZEND_ARG_OBJ_INFO(1, rados, Rados, 0)
 ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_rados_radosproxy_call, 0, 0, 1)
-    ZEND_ARG_INFO(0, "method")
-    ZEND_ARG_ARRAY_INFO(0, "args", 1)
+    ZEND_ARG_INFO(0, method)
+    ZEND_ARG_ARRAY_INFO(0, args, 1)
 ZEND_END_ARG_INFO()
 
 const zend_function_entry php_rados_radosproxy_methods[] = {
