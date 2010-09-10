@@ -15,6 +15,7 @@
 #endif
 
 #include "php_rados.h"
+#include "rados_interfaces.h"
 
 zend_object_handlers rados_object_handlers;
 
@@ -1241,6 +1242,8 @@ PHP_MINIT_FUNCTION(rados)
     rados_radosexception_ce = zend_register_internal_class_ex(&ce, zend_exception_get_default(TSRMLS_C), NULL TSRMLS_CC);
     rados_radosexception_ce->ce_flags |= ZEND_ACC_FINAL;
     zend_declare_property_long(rados_radosexception_ce, "code", sizeof("code")-1, 0, ZEND_ACC_PUBLIC TSRMLS_CC);
+
+    PHP_MINIT(rados_interfaces)(INIT_FUNC_ARGS_PASSTHRU);
 
     return SUCCESS;
 }
