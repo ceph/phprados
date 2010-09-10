@@ -33,42 +33,208 @@ struct rados_object {
     }
 };
 
+ZEND_BEGIN_ARG_INFO(arginfo_rados___construct, 0)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO(arginfo_rados_initialize, 0)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO(arginfo_rados_open_pool, 0)
+    ZEND_ARG_INFO(0, name)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO(arginfo_rados_close_pool, 0)
+    ZEND_ARG_INFO(0, pool)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_rados_create_pool, 0, 0, 1)
+    ZEND_ARG_INFO(0, name)
+    ZEND_ARG_INFO(0, auid)
+    ZEND_ARG_INFO(0, crushrule)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO(arginfo_rados_delete_pool, 0)
+    ZEND_ARG_INFO(0, pool)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO(arginfo_rados_lookup_pool, 0)
+    ZEND_ARG_INFO(0, name)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO(arginfo_rados_change_pool_auid, 0)
+    ZEND_ARG_INFO(0, auid)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO(arginfo_rados_list_pools, 0)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO(arginfo_rados_snap_create, 0)
+    ZEND_ARG_INFO(0, pool)
+    ZEND_ARG_INFO(0, snapname)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO(arginfo_rados_snap_remove, 0)
+    ZEND_ARG_INFO(0, pool)
+    ZEND_ARG_INFO(0, snapname)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO(arginfo_rados_snap_list, 0)
+    ZEND_ARG_INFO(0, pool)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO(arginfo_rados_snap_get_name, 0)
+    ZEND_ARG_INFO(0, pool)
+    ZEND_ARG_INFO(0, snapid)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO(arginfo_rados_snap_get_stamp, 0)
+    ZEND_ARG_INFO(0, pool)
+    ZEND_ARG_INFO(0, snapid)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO(arginfo_rados_snap_lookup, 0)
+    ZEND_ARG_INFO(0, pool)
+    ZEND_ARG_INFO(0, snapname)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO(arginfo_rados_selfmanaged_snap_create, 0)
+    ZEND_ARG_INFO(0, pool)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO(arginfo_rados_selfmanaged_snap_remove, 0)
+    ZEND_ARG_INFO(0, pool)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO(arginfo_rados_snap_rollback_object, 0)
+    ZEND_ARG_INFO(0, pool)
+    ZEND_ARG_INFO(0, oid)
+    ZEND_ARG_INFO(0, snapname)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO(arginfo_rados_list_objects, 0)
+     ZEND_ARG_INFO(0, pool)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO(arginfo_rados_list_objects_open, 0)
+    ZEND_ARG_INFO(0, pool)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO(arginfo_rados_list_objects_more, 0)
+    ZEND_ARG_INFO(0, listCtx)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO(arginfo_rados_list_objects_close, 0)
+    ZEND_ARG_INFO(0, listCtx)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_rados_create, 0, 0, 2)
+    ZEND_ARG_INFO(0, pool)
+    ZEND_ARG_INFO(0, oid)
+    ZEND_ARG_INFO(0, exclusive)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO(arginfo_rados_remove, 0)
+    ZEND_ARG_INFO(0, pool)
+    ZEND_ARG_INFO(0, oid)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO(arginfo_rados_stat, 0)
+    ZEND_ARG_INFO(0, pool)
+    ZEND_ARG_INFO(0, oid)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO(arginfo_rados_write_full, 0)
+    ZEND_ARG_INFO(0, pool)
+    ZEND_ARG_INFO(0, oid)
+    ZEND_ARG_INFO(0, data)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_rados_write, 0, 0, 3)
+    ZEND_ARG_INFO(0, pool)
+    ZEND_ARG_INFO(0, oid)
+    ZEND_ARG_INFO(0, data)
+    ZEND_ARG_INFO(0, offset)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO(arginfo_rados_read_full, 0)
+    ZEND_ARG_INFO(0, pool)
+    ZEND_ARG_INFO(0, oid)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO_EX(arginfo_rados_read, 0, 0, 3)
+    ZEND_ARG_INFO(0, pool)
+    ZEND_ARG_INFO(0, oid)
+    ZEND_ARG_INFO(0, size)
+    ZEND_ARG_INFO(0, offset)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO(arginfo_rados_trunc, 0)
+    ZEND_ARG_INFO(0, pool)
+    ZEND_ARG_INFO(0, oid)
+    ZEND_ARG_INFO(0, size)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO(arginfo_rados_getxattr, 0)
+    ZEND_ARG_INFO(0, pool)
+    ZEND_ARG_INFO(0, oid)
+    ZEND_ARG_INFO(0, xattr)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO(arginfo_rados_setxattr, 0)
+    ZEND_ARG_INFO(0, pool)
+    ZEND_ARG_INFO(0, oid)
+    ZEND_ARG_INFO(0, xattr)
+    ZEND_ARG_INFO(0, data)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO(arginfo_rados_getxattrs, 0)
+    ZEND_ARG_INFO(0, pool)
+    ZEND_ARG_INFO(0, oid)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO(arginfo_rados_get_pool_stats, 0)
+    ZEND_ARG_INFO(0, pools)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO(arginfo_rados_get_fs_stats, 0)
+ZEND_END_ARG_INFO()
+
 const zend_function_entry rados_rados_methods[] = {
-    PHP_ME(Rados, __construct, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_CTOR)
-    PHP_ME(Rados, initialize, NULL, ZEND_ACC_PUBLIC)
-    PHP_ME(Rados, open_pool, NULL, ZEND_ACC_PUBLIC)
-    PHP_ME(Rados, close_pool, NULL, ZEND_ACC_PUBLIC)
-    PHP_ME(Rados, create_pool, NULL, ZEND_ACC_PUBLIC)
-    PHP_ME(Rados, delete_pool, NULL, ZEND_ACC_PUBLIC)
-    PHP_ME(Rados, lookup_pool, NULL, ZEND_ACC_PUBLIC)
-    PHP_ME(Rados, change_pool_auid, NULL, ZEND_ACC_PUBLIC)
-    PHP_ME(Rados, list_pools, NULL, ZEND_ACC_PUBLIC)
-    PHP_ME(Rados, snap_create, NULL, ZEND_ACC_PUBLIC)
-    PHP_ME(Rados, snap_remove, NULL, ZEND_ACC_PUBLIC)
-    PHP_ME(Rados, snap_list, NULL, ZEND_ACC_PUBLIC)
-    PHP_ME(Rados, snap_get_name, NULL, ZEND_ACC_PUBLIC)
-    PHP_ME(Rados, snap_get_stamp, NULL, ZEND_ACC_PUBLIC)
-    PHP_ME(Rados, snap_lookup, NULL, ZEND_ACC_PUBLIC)
-    PHP_ME(Rados, selfmanaged_snap_create, NULL, ZEND_ACC_PUBLIC)
-    PHP_ME(Rados, selfmanaged_snap_remove, NULL, ZEND_ACC_PUBLIC)
-    PHP_ME(Rados, snap_rollback_object, NULL, ZEND_ACC_PUBLIC)
-    PHP_ME(Rados, list_objects, NULL, ZEND_ACC_PUBLIC)
-    PHP_ME(Rados, list_objects_open, NULL, ZEND_ACC_PUBLIC)
-    PHP_ME(Rados, list_objects_more, NULL, ZEND_ACC_PUBLIC)
-    PHP_ME(Rados, list_objects_close, NULL, ZEND_ACC_PUBLIC)
-    PHP_ME(Rados, create, NULL, ZEND_ACC_PUBLIC)
-    PHP_ME(Rados, remove, NULL, ZEND_ACC_PUBLIC)
-    PHP_ME(Rados, stat, NULL, ZEND_ACC_PUBLIC)
-    PHP_ME(Rados, write_full, NULL, ZEND_ACC_PUBLIC)
-    PHP_ME(Rados, write, NULL, ZEND_ACC_PUBLIC)
-    PHP_ME(Rados, read, NULL, ZEND_ACC_PUBLIC)
-    PHP_ME(Rados, read_full, NULL, ZEND_ACC_PUBLIC)
-    PHP_ME(Rados, trunc, NULL, ZEND_ACC_PUBLIC)
-    PHP_ME(Rados, getxattr, NULL, ZEND_ACC_PUBLIC)
-    PHP_ME(Rados, setxattr, NULL, ZEND_ACC_PUBLIC)
-    PHP_ME(Rados, getxattrs, NULL, ZEND_ACC_PUBLIC)
-    PHP_ME(Rados, get_pool_stats, NULL, ZEND_ACC_PUBLIC)
-    PHP_ME(Rados, get_fs_stats, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, __construct, arginfo_rados___construct, ZEND_ACC_PUBLIC | ZEND_ACC_CTOR)
+    PHP_ME(Rados, initialize, arginfo_rados_initialize, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, open_pool, arginfo_rados_open_pool, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, close_pool, arginfo_rados_close_pool, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, create_pool, arginfo_rados_create_pool, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, delete_pool, arginfo_rados_delete_pool, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, lookup_pool, arginfo_rados_lookup_pool, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, change_pool_auid, arginfo_rados_change_pool_auid, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, list_pools, arginfo_rados_list_pools, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, snap_create, arginfo_rados_snap_create, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, snap_remove, arginfo_rados_snap_remove, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, snap_list, arginfo_rados_snap_list, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, snap_get_name, arginfo_rados_snap_get_name, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, snap_get_stamp, arginfo_rados_snap_get_stamp, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, snap_lookup, arginfo_rados_snap_lookup, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, selfmanaged_snap_create, arginfo_rados_snap_create, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, selfmanaged_snap_remove, arginfo_rados_snap_remove, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, snap_rollback_object, arginfo_rados_snap_rollback_object, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, list_objects, arginfo_rados_list_objects, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, list_objects_open, arginfo_rados_list_objects_open, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, list_objects_more, arginfo_rados_list_objects_more, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, list_objects_close, arginfo_rados_list_objects_close, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, create, arginfo_rados_create, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, remove, arginfo_rados_remove, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, stat, arginfo_rados_stat, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, write_full, arginfo_rados_write_full, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, write, arginfo_rados_write, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, read, arginfo_rados_read, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, read_full, arginfo_rados_read_full, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, trunc, arginfo_rados_trunc, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, getxattr, arginfo_rados_getxattr, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, setxattr, arginfo_rados_setxattr, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, getxattrs, arginfo_rados_getxattrs, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, get_pool_stats, arginfo_rados_get_pool_stats, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, get_fs_stats, arginfo_rados_get_fs_stats, ZEND_ACC_PUBLIC)
     {NULL, NULL, NULL}
 };
 
@@ -466,13 +632,13 @@ PHP_METHOD(Rados, snap_list)
     std::vector<snap_t> snaps;
     php_rados_pool *pool_r;
     zval *zpool;
-    
+
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &zpool) == FAILURE) {
         RETURN_FALSE;
     }
-    
+
     ZEND_FETCH_RESOURCE(pool_r, php_rados_pool*, &zpool, -1, PHP_RADOS_POOL_RES_NAME, le_rados_pool);
-    
+
     Rados *rados;
     rados_object *obj = (rados_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
     rados = obj->rados;
@@ -494,13 +660,13 @@ PHP_METHOD(Rados, snap_get_name)
     zval *zpool;
     long snapid;
     std::string snapname;
-    
+
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &zpool, (__u64)&snapid) == FAILURE) {
         RETURN_FALSE;
     }
-    
+
     ZEND_FETCH_RESOURCE(pool_r, php_rados_pool*, &zpool, -1, PHP_RADOS_POOL_RES_NAME, le_rados_pool);
-    
+
     Rados *rados;
     rados_object *obj = (rados_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
     rados = obj->rados;
@@ -508,7 +674,7 @@ PHP_METHOD(Rados, snap_get_name)
     if (rados->snap_get_name(pool_r->pool, snapid, &snapname) < 0) {
         RETURN_FALSE;
     }
-    
+
     RETURN_STRINGL(snapname.c_str(), snapname.length(), 1);
 }
 
@@ -518,17 +684,17 @@ PHP_METHOD(Rados, snap_get_stamp)
     zval *zpool;
     long snapid;
     time_t stamp;
-    
+
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &zpool, (__u64)&snapid) == FAILURE) {
         RETURN_FALSE;
     }
-    
+
     ZEND_FETCH_RESOURCE(pool_r, php_rados_pool*, &zpool, -1, PHP_RADOS_POOL_RES_NAME, le_rados_pool);
-    
+
     Rados *rados;
     rados_object *obj = (rados_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
     rados = obj->rados;
-    
+
     if (rados->snap_get_stamp(pool_r->pool, snapid, &stamp) < 0) {
         RETURN_FALSE;
     }
@@ -545,17 +711,17 @@ PHP_METHOD(Rados, snap_lookup)
     char *snapname=NULL;
     int snapname_len;
     snap_t snapid;
-    
+
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &zpool, &snapname, &snapname_len) == FAILURE) {
         RETURN_FALSE;
     }
-    
+
     ZEND_FETCH_RESOURCE(pool_r, php_rados_pool*, &zpool, -1, PHP_RADOS_POOL_RES_NAME, le_rados_pool);
-    
+
     Rados *rados;
     rados_object *obj = (rados_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
     rados = obj->rados;
-    
+
     if (rados->snap_lookup(pool_r->pool, snapname, &snapid) < 0) {
         RETURN_FALSE;
     }
