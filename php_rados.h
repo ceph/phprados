@@ -56,7 +56,7 @@ PHP_METHOD(Rados, snap_get_stamp);
 PHP_METHOD(Rados, snap_lookup);
 PHP_METHOD(Rados, selfmanaged_snap_create);
 PHP_METHOD(Rados, selfmanaged_snap_remove);
-PHP_METHOD(Rados, selfmanaged_snap_rollback_object);
+//PHP_METHOD(Rados, selfmanaged_snap_rollback_object);
 PHP_METHOD(Rados, snap_rollback_object);
 PHP_METHOD(Rados, list_objects);
 PHP_METHOD(Rados, list_objects_open);
