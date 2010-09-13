@@ -200,6 +200,44 @@ ZEND_BEGIN_ARG_INFO(arginfo_rados_get_fs_stats, 0)
 ZEND_END_ARG_INFO()
 
 const zend_function_entry rados_rados_methods[] = {
+<<<<<<< HEAD
+    PHP_ME(Rados, __construct, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_CTOR)
+    PHP_ME(Rados, initialize, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, open_pool, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, close_pool, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, create_pool, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, delete_pool, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, lookup_pool, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, change_pool_auid, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, list_pools, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, snap_create, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, snap_remove, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, snap_list, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, snap_get_name, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, snap_get_stamp, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, snap_lookup, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, selfmanaged_snap_create, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, selfmanaged_snap_remove, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, selfmanaged_snap_rollback_object, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, snap_rollback_object, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, list_objects, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, list_objects_open, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, list_objects_more, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, list_objects_close, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, create, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, remove, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, stat, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, write_full, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, write, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, read, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, read_full, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, trunc, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, getxattr, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, setxattr, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, getxattrs, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, get_pool_stats, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, get_fs_stats, NULL, ZEND_ACC_PUBLIC)
+=======
     PHP_ME(Rados, __construct, arginfo_rados___construct, ZEND_ACC_PUBLIC | ZEND_ACC_CTOR)
     PHP_ME(Rados, initialize, arginfo_rados_initialize, ZEND_ACC_PUBLIC)
     PHP_ME(Rados, open_pool, arginfo_rados_open_pool, ZEND_ACC_PUBLIC)
@@ -235,6 +273,7 @@ const zend_function_entry rados_rados_methods[] = {
     PHP_ME(Rados, getxattrs, arginfo_rados_getxattrs, ZEND_ACC_PUBLIC)
     PHP_ME(Rados, get_pool_stats, arginfo_rados_get_pool_stats, ZEND_ACC_PUBLIC)
     PHP_ME(Rados, get_fs_stats, arginfo_rados_get_fs_stats, ZEND_ACC_PUBLIC)
+>>>>>>> c0816569ffaed003896f1cff7dc0e804e6a93262
     {NULL, NULL, NULL}
 };
 
@@ -770,6 +809,41 @@ PHP_METHOD(Rados, selfmanaged_snap_remove)
         RETURN_FALSE;
     }
 
+    RETURN_TRUE;
+}
+
+PHP_METHOD(Rados, selfmanaged_snap_rollback_object)
+{
+    php_rados_pool *pool_r;
+    zval *zpool, *snapcontext;
+    uint64_t *snapid;
+    char *oid=NULL;
+    int oid_len;
+    HashTable *arr_hash;
+    HashPosition hash_pos;
+    zval **arr_value;
+    
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rsal", &zpool, &oid, &oid_len, &snapcontext, &snapid) == FAILURE) {
+        RETURN_FALSE;
+    }
+    
+    ZEND_FETCH_RESOURCE(pool_r, php_rados_pool*, &zpool, -1, PHP_RADOS_POOL_RES_NAME, le_rados_pool);
+
+    arr_hash = Z_ARRVAL_P(snapcontext);    
+    for(zend_hash_internal_pointer_reset_ex(arr_hash, &hash_pos); zend_hash_get_current_data_ex(arr_hash, (void**) &arr_value, &hash_pos) == SUCCESS; zend_hash_move_forward_ex(arr_hash, &hash_pos)) {
+        if (Z_TYPE_PP(arr_value) == IS_STRING) {
+            v.push_back(Z_STRVAL_PP(arr_value));
+        }
+    }
+
+    Rados *rados;
+    rados_object *obj = (rados_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
+    rados = obj->rados;
+
+    if (rados->selfmanaged_snap_rollback_object(pool_r->pool, oid, snapc, snapid) < 0) {
+        RETURN_FALSE;
+    }
+    
     RETURN_TRUE;
 }
 
