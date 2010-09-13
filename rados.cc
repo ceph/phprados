@@ -24,16 +24,23 @@ zend_class_entry *rados_radosexception_ce;
 int le_rados_pool;
 int le_rados_listctx;
 
-struct rados_object {
+struct rados_object
+{
     zend_object std;
     Rados *rados;
     bool initialized;
-    rados_object() {
-      initialized = false;
-    }
+    const char *argv;
+    int argc;
+
+    rados_object() :
+        initialized(false),
+        argv(NULL),
+        argc(0)
+    {}
 };
 
 ZEND_BEGIN_ARG_INFO(arginfo_rados___construct, 0)
+    ZEND_ARG_ARRAY_INFO(0, options, 1)
 ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_INFO(arginfo_rados_initialize, 0)
@@ -258,13 +265,77 @@ void rados_free_storage(void *object TSRMLS_DC)
     efree(obj);
 }
 
-static char* uint642char(uint64_t u) {
-    std::stringstream c_s;
-    c_s << u;
-    char *c_buf = (char *)emalloc(sizeof(c_s.str().c_str()));
-    strcpy(c_buf, c_s.str().c_str());
-    return c_buf;
-};
+namespace {
+
+    char *uint642char(uint64_t u)
+    {
+        std::stringstream c_s;
+        c_s << u;
+        char *c_buf = (char *)emalloc(sizeof(c_s.str().c_str()));
+        strcpy(c_buf, c_s.str().c_str());
+        return c_buf;
+    }
+
+    void prepare_init_args(HashTable *options, rados_object *obj)
+    {
+        HashPosition pos;
+        std::string args = "";
+        int argc = 0;
+
+        for (zend_hash_internal_pointer_reset_ex(options, &pos);
+             zend_hash_has_more_elements_ex(options, &pos) == SUCCESS;
+             zend_hash_move_forward_ex(options, &pos)) {
+
+            zval **ppzval, tmpcopy;
+            int type;
+            char *key;
+            uint keylen;
+            ulong idx;
+
+            type = zend_hash_get_current_key_ex(options,
+                &key, &keylen, &idx, 0, &pos);
+
+            if (zend_hash_get_current_data_ex(options,
+                (void**)&ppzval, &pos) == FAILURE ||
+                HASH_KEY_IS_STRING != type) {
+                continue;
+            }
+
+            tmpcopy = **ppzval;
+            zval_copy_ctor(&tmpcopy);
+            INIT_PZVAL(&tmpcopy);
+            convert_to_string(&tmpcopy);
+
+            if (0 == strcmp(key, "config_file")) {
+                args += "-c ";
+                args += Z_STRVAL(tmpcopy);
+                argc += 2;
+            }
+            if (0 == strcmp(key, "monitor_ip")) {
+                args += " -m ";
+                args += Z_STRVAL(tmpcopy);
+                argc += 2;
+            }
+            if (0 == strcmp(key, "cephx_keyfile")) {
+                args += " -K ";
+                args += Z_STRVAL(tmpcopy);
+                argc += 2;
+            }
+            if (0 == strcmp(key, "cephx_keyring")) {
+                args += " -n ";
+                args += Z_STRVAL(tmpcopy);
+                argc += 2;
+            }
+
+            zval_dtor(&tmpcopy);
+        }
+
+        if (argc > 0 && args.size() > 0) {
+            obj->argv = args.c_str();
+            obj->argc = argc;
+        }
+    }
+}
 
 zend_object_value rados_create_handler(zend_class_entry *type TSRMLS_DC)
 {
@@ -285,59 +356,38 @@ zend_object_value rados_create_handler(zend_class_entry *type TSRMLS_DC)
     return retval;
 }
 
-
 PHP_METHOD(Rados, __construct)
 {
     Rados *rados = NULL;
-    zval *object = getThis();
+    zval *object = getThis(), *options = NULL;
 
     rados = new Rados();
     rados_object *obj = (rados_object *)zend_object_store_get_object(object TSRMLS_CC);
     obj->rados = rados;
+
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|a", &options) == FAILURE) {
+        RETURN_NULL();
+    }
+
+    if (options) {
+        prepare_init_args(Z_ARRVAL_P(options), obj);
+    }
 }
 
 PHP_METHOD(Rados, initialize)
 {
     Rados *rados;
-
     rados_object *obj = (rados_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
+
     if (!obj->initialized) {
-
-        int argc = 1;
-        const char *argv[0];
-
-        if (INI_STR("rados.monitor_ip") != NULL) {
-            argv[argc++] = "-m";
-            argv[argc++] = INI_STR("rados.monitor_ip");
-        }
-
-        if (INI_STR("rados.cephx_keyfile") != NULL) {
-            argv[argc++] = "-K";
-            argv[argc++] = INI_STR("rados.cephx_keyfile");
-        }
-
-        if (INI_STR("rados.cephx_keyring") != NULL) {
-            argv[argc++] = "-k";
-            argv[argc++] = INI_STR("rados.cephx_keyring");
-        }
-
-        if (INI_STR("rados.cephx_name") != NULL) {
-            argv[argc++] = "-n";
-            argv[argc++] = INI_STR("rados.cephx_name");
-        }
-
-        if (INI_STR("rados.config_file") != NULL) {
-            argv[argc++] = "-c";
-            argv[argc++] = INI_STR("rados.config_file");
-        }
-
         rados = obj->rados;
-        if (rados->initialize(argc, argv) < 0) {
+        if (rados->initialize(obj->argc, &obj->argv) < 0) {
             zend_throw_exception(rados_radosexception_ce, "Failed to initialize RADOS!", 0 TSRMLS_CC);
             return;
         }
         obj->initialized = true;
     }
+
     RETURN_TRUE;
 }
 
@@ -1215,18 +1265,8 @@ PHP_METHOD(Rados, getxattrs)
 
 }
 
-PHP_INI_BEGIN()
-    PHP_INI_ENTRY("rados.config_file", NULL, PHP_INI_ALL, NULL)
-    PHP_INI_ENTRY("rados.monitor_ip", NULL, PHP_INI_ALL, NULL)
-    PHP_INI_ENTRY("rados.cephx_keyfile", NULL, PHP_INI_ALL, NULL)
-    PHP_INI_ENTRY("rados.cephx_keyring", NULL, PHP_INI_ALL, NULL)
-    PHP_INI_ENTRY("rados.cephx_name", NULL, PHP_INI_ALL, NULL)
-PHP_INI_END()
-
 PHP_MINIT_FUNCTION(rados)
 {
-    REGISTER_INI_ENTRIES();
-
     le_rados_pool = zend_register_list_destructors_ex(NULL, NULL, PHP_RADOS_POOL_RES_NAME, module_number);
     le_rados_listctx = zend_register_list_destructors_ex(NULL, NULL, PHP_RADOS_LISTCTX_RES_NAME, module_number);
     zend_class_entry ce;
@@ -1245,20 +1285,12 @@ PHP_MINIT_FUNCTION(rados)
     return SUCCESS;
 }
 
-PHP_MSHUTDOWN_FUNCTION(rados)
-{
-    UNREGISTER_INI_ENTRIES();
-    return SUCCESS;
-}
-
 PHP_MINFO_FUNCTION(rados)
 {
     php_info_print_table_start();
     php_info_print_table_row(2, "Rados", "enabled");
     php_info_print_table_row(2, "Rados extension version", PHP_RADOS_EXTVER);
     php_info_print_table_end();
-
-    DISPLAY_INI_ENTRIES();
 }
 
 zend_module_entry rados_module_entry = {
@@ -1266,7 +1298,7 @@ zend_module_entry rados_module_entry = {
     PHP_RADOS_EXTNAME,
     NULL,                  /* Functions */
     PHP_MINIT(rados),      /* MINIT */
-    PHP_MSHUTDOWN(rados),  /* MSHUTDOWN */
+    NULL,                  /* MSHUTDOWN */
     NULL,                  /* RINIT */
     NULL,                  /* RSHUTDOWN */
     PHP_MINFO(rados),      /* MINFO */
