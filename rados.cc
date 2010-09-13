@@ -774,7 +774,7 @@ PHP_METHOD(Rados, selfmanaged_snap_remove)
     RETURN_TRUE;
 }
 
-PHP_METHOD(Rados, selfmanaged_snap_rollback_object)
+/*PHP_METHOD(Rados, selfmanaged_snap_rollback_object)
 {
     php_rados_pool *pool_r;
     zval *zpool, *snapcontext;
@@ -807,7 +807,7 @@ PHP_METHOD(Rados, selfmanaged_snap_rollback_object)
     }
     
     RETURN_TRUE;
-}
+}*/
 
 PHP_METHOD(Rados, snap_rollback_object)
 {
