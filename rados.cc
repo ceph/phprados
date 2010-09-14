@@ -9,6 +9,8 @@
  * Foundation.  See file COPYING.
  *
  */
+#include <sstream>
+#include <vector>
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -29,13 +31,11 @@ struct rados_object
     zend_object std;
     Rados *rados;
     bool initialized;
-    const char *argv;
-    int argc;
+    std::vector<const char*> argv;
 
     rados_object() :
         initialized(false),
-        argv(NULL),
-        argc(0)
+        argv(NULL)
     {}
 };
 
@@ -277,11 +277,17 @@ namespace {
         return c_buf;
     }
 
+    const char *cp_zval_strval(zval &z)
+    {
+        std::stringstream ss(Z_STRVAL(z));
+        char *buf = (char *)emalloc(sizeof(ss.str().size() + 1));
+        strcpy(buf, ss.str().c_str());
+        return (const char *)buf;
+    }
+
     void prepare_init_args(HashTable *options, rados_object *obj)
     {
         HashPosition pos;
-        std::string args = "";
-        int argc = 0;
 
         for (zend_hash_internal_pointer_reset_ex(options, &pos);
              zend_hash_has_more_elements_ex(options, &pos) == SUCCESS;
@@ -308,32 +314,20 @@ namespace {
             convert_to_string(&tmpcopy);
 
             if (0 == strcmp(key, "config_file")) {
-                args += "-c ";
-                args += Z_STRVAL(tmpcopy);
-                argc += 2;
-            }
-            if (0 == strcmp(key, "monitor_ip")) {
-                args += " -m ";
-                args += Z_STRVAL(tmpcopy);
-                argc += 2;
-            }
-            if (0 == strcmp(key, "cephx_keyfile")) {
-                args += " -K ";
-                args += Z_STRVAL(tmpcopy);
-                argc += 2;
-            }
-            if (0 == strcmp(key, "cephx_keyring")) {
-                args += " -n ";
-                args += Z_STRVAL(tmpcopy);
-                argc += 2;
+                obj->argv.push_back("-c");
+                obj->argv.push_back(cp_zval_strval(tmpcopy));
+            } else if (0 == strcmp(key, "monitor_ip")) {
+                obj->argv.push_back("-m");
+                obj->argv.push_back(cp_zval_strval(tmpcopy));
+            } else if (0 == strcmp(key, "cephx_keyfile")) {
+                obj->argv.push_back("-K");
+                obj->argv.push_back(cp_zval_strval(tmpcopy));
+            } else if (0 == strcmp(key, "cephx_keyring")) {
+                obj->argv.push_back("-n");
+                obj->argv.push_back(cp_zval_strval(tmpcopy));
             }
 
             zval_dtor(&tmpcopy);
-        }
-
-        if (argc > 0 && args.size() > 0) {
-            obj->argv = args.c_str();
-            obj->argc = argc;
         }
     }
 }
@@ -382,7 +376,7 @@ PHP_METHOD(Rados, initialize)
 
     if (!obj->initialized) {
         rados = obj->rados;
-        if (rados->initialize(obj->argc, &obj->argv) < 0) {
+        if (rados->initialize((int)obj->argv.size(), &obj->argv[0]) < 0) {
             zend_throw_exception(rados_radosexception_ce, "Failed to initialize RADOS!", 0 TSRMLS_CC);
             return;
         }
