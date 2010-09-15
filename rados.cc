@@ -269,7 +269,7 @@ namespace {
     const char *cp_zval_strval(zval &z)
     {
         std::stringstream ss(Z_STRVAL(z));
-        char *buf = (char *)emalloc(sizeof(ss.str().size() + 1));
+        char *buf = (char *)emalloc(ss.str().size() + 1);
         strcpy(buf, ss.str().c_str());
         return (const char *)buf;
     }
