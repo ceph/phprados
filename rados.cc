@@ -9,6 +9,8 @@
  * Foundation.  See file COPYING.
  *
  */
+#include <sstream>
+#include <vector>
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -25,16 +27,21 @@ zend_class_entry *rados_radosexception_ce;
 int le_rados_pool;
 int le_rados_listctx;
 
-struct rados_object {
+struct rados_object
+{
     zend_object std;
     Rados *rados;
     bool initialized;
-    rados_object() {
-      initialized = false;
-    }
+    std::vector<const char*> argv;
+
+    rados_object() :
+        initialized(false),
+        argv(NULL)
+    {}
 };
 
 ZEND_BEGIN_ARG_INFO(arginfo_rados___construct, 0)
+    ZEND_ARG_ARRAY_INFO(0, options, 1)
 ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_INFO(arginfo_rados_initialize, 0)
@@ -96,14 +103,6 @@ ZEND_END_ARG_INFO()
 ZEND_BEGIN_ARG_INFO(arginfo_rados_snap_lookup, 0)
     ZEND_ARG_INFO(0, pool)
     ZEND_ARG_INFO(0, snapname)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_INFO(arginfo_rados_selfmanaged_snap_create, 0)
-    ZEND_ARG_INFO(0, pool)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_INFO(arginfo_rados_selfmanaged_snap_remove, 0)
-    ZEND_ARG_INFO(0, pool)
 ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_INFO(arginfo_rados_snap_rollback_object, 0)
@@ -201,41 +200,39 @@ ZEND_BEGIN_ARG_INFO(arginfo_rados_get_fs_stats, 0)
 ZEND_END_ARG_INFO()
 
 const zend_function_entry rados_rados_methods[] = {
-    PHP_ME(Rados, __construct, arginfo_rados___construct, ZEND_ACC_PUBLIC | ZEND_ACC_CTOR)
-    PHP_ME(Rados, initialize, arginfo_rados_initialize, ZEND_ACC_PUBLIC)
-    PHP_ME(Rados, open_pool, arginfo_rados_open_pool, ZEND_ACC_PUBLIC)
-    PHP_ME(Rados, close_pool, arginfo_rados_close_pool, ZEND_ACC_PUBLIC)
-    PHP_ME(Rados, create_pool, arginfo_rados_create_pool, ZEND_ACC_PUBLIC)
-    PHP_ME(Rados, delete_pool, arginfo_rados_delete_pool, ZEND_ACC_PUBLIC)
-    PHP_ME(Rados, lookup_pool, arginfo_rados_lookup_pool, ZEND_ACC_PUBLIC)
-    PHP_ME(Rados, change_pool_auid, arginfo_rados_change_pool_auid, ZEND_ACC_PUBLIC)
-    PHP_ME(Rados, list_pools, arginfo_rados_list_pools, ZEND_ACC_PUBLIC)
-    PHP_ME(Rados, snap_create, arginfo_rados_snap_create, ZEND_ACC_PUBLIC)
-    PHP_ME(Rados, snap_remove, arginfo_rados_snap_remove, ZEND_ACC_PUBLIC)
-    PHP_ME(Rados, snap_list, arginfo_rados_snap_list, ZEND_ACC_PUBLIC)
-    PHP_ME(Rados, snap_get_name, arginfo_rados_snap_get_name, ZEND_ACC_PUBLIC)
-    PHP_ME(Rados, snap_get_stamp, arginfo_rados_snap_get_stamp, ZEND_ACC_PUBLIC)
-    PHP_ME(Rados, snap_lookup, arginfo_rados_snap_lookup, ZEND_ACC_PUBLIC)
-    PHP_ME(Rados, selfmanaged_snap_create, arginfo_rados_snap_create, ZEND_ACC_PUBLIC)
-    PHP_ME(Rados, selfmanaged_snap_remove, arginfo_rados_snap_remove, ZEND_ACC_PUBLIC)
-    PHP_ME(Rados, snap_rollback_object, arginfo_rados_snap_rollback_object, ZEND_ACC_PUBLIC)
-    PHP_ME(Rados, list_objects, arginfo_rados_list_objects, ZEND_ACC_PUBLIC)
-    PHP_ME(Rados, list_objects_open, arginfo_rados_list_objects_open, ZEND_ACC_PUBLIC)
-    PHP_ME(Rados, list_objects_more, arginfo_rados_list_objects_more, ZEND_ACC_PUBLIC)
-    PHP_ME(Rados, list_objects_close, arginfo_rados_list_objects_close, ZEND_ACC_PUBLIC)
-    PHP_ME(Rados, create, arginfo_rados_create, ZEND_ACC_PUBLIC)
-    PHP_ME(Rados, remove, arginfo_rados_remove, ZEND_ACC_PUBLIC)
-    PHP_ME(Rados, stat, arginfo_rados_stat, ZEND_ACC_PUBLIC)
-    PHP_ME(Rados, write_full, arginfo_rados_write_full, ZEND_ACC_PUBLIC)
-    PHP_ME(Rados, write, arginfo_rados_write, ZEND_ACC_PUBLIC)
-    PHP_ME(Rados, read, arginfo_rados_read, ZEND_ACC_PUBLIC)
-    PHP_ME(Rados, read_full, arginfo_rados_read_full, ZEND_ACC_PUBLIC)
-    PHP_ME(Rados, trunc, arginfo_rados_trunc, ZEND_ACC_PUBLIC)
-    PHP_ME(Rados, getxattr, arginfo_rados_getxattr, ZEND_ACC_PUBLIC)
-    PHP_ME(Rados, setxattr, arginfo_rados_setxattr, ZEND_ACC_PUBLIC)
-    PHP_ME(Rados, getxattrs, arginfo_rados_getxattrs, ZEND_ACC_PUBLIC)
-    PHP_ME(Rados, get_pool_stats, arginfo_rados_get_pool_stats, ZEND_ACC_PUBLIC)
-    PHP_ME(Rados, get_fs_stats, arginfo_rados_get_fs_stats, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, __construct, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_CTOR)
+    PHP_ME(Rados, initialize, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, open_pool, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, close_pool, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, create_pool, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, delete_pool, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, lookup_pool, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, change_pool_auid, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, list_pools, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, snap_create, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, snap_remove, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, snap_list, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, snap_get_name, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, snap_get_stamp, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, snap_lookup, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, snap_rollback_object, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, list_objects, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, list_objects_open, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, list_objects_more, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, list_objects_close, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, create, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, remove, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, stat, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, write_full, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, write, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, read, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, read_full, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, trunc, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, getxattr, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, setxattr, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, getxattrs, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, get_pool_stats, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, get_fs_stats, NULL, ZEND_ACC_PUBLIC)
     {NULL, NULL, NULL}
 };
 
@@ -259,13 +256,71 @@ void rados_free_storage(void *object TSRMLS_DC)
     efree(obj);
 }
 
-static char* uint642char(uint64_t u) {
-    std::stringstream c_s;
-    c_s << u;
-    char *c_buf = (char *)emalloc(sizeof(c_s.str().c_str()));
-    strcpy(c_buf, c_s.str().c_str());
-    return c_buf;
-};
+namespace {
+
+    char *uint642char(uint64_t u)
+    {
+        std::stringstream c_s;
+        c_s << u;
+        char *c_buf = (char *)emalloc(sizeof(c_s.str().c_str()));
+        strcpy(c_buf, c_s.str().c_str());
+        return c_buf;
+    }
+
+    const char *cp_zval_strval(zval &z)
+    {
+        std::stringstream ss(Z_STRVAL(z));
+        char *buf = (char *)emalloc(ss.str().size() + 1);
+        strcpy(buf, ss.str().c_str());
+        return (const char *)buf;
+    }
+
+    void prepare_init_args(HashTable *options, rados_object *obj)
+    {
+        HashPosition pos;
+
+        for (zend_hash_internal_pointer_reset_ex(options, &pos);
+             zend_hash_has_more_elements_ex(options, &pos) == SUCCESS;
+             zend_hash_move_forward_ex(options, &pos)) {
+
+            zval **ppzval, tmpcopy;
+            int type;
+            char *key;
+            uint keylen;
+            ulong idx;
+
+            type = zend_hash_get_current_key_ex(options,
+                &key, &keylen, &idx, 0, &pos);
+
+            if (zend_hash_get_current_data_ex(options,
+                (void**)&ppzval, &pos) == FAILURE ||
+                HASH_KEY_IS_STRING != type) {
+                continue;
+            }
+
+            tmpcopy = **ppzval;
+            zval_copy_ctor(&tmpcopy);
+            INIT_PZVAL(&tmpcopy);
+            convert_to_string(&tmpcopy);
+
+            if (0 == strcmp(key, "config_file")) {
+                obj->argv.push_back("-c");
+                obj->argv.push_back(cp_zval_strval(tmpcopy));
+            } else if (0 == strcmp(key, "monitor_ip")) {
+                obj->argv.push_back("-m");
+                obj->argv.push_back(cp_zval_strval(tmpcopy));
+            } else if (0 == strcmp(key, "cephx_keyfile")) {
+                obj->argv.push_back("-K");
+                obj->argv.push_back(cp_zval_strval(tmpcopy));
+            } else if (0 == strcmp(key, "cephx_keyring")) {
+                obj->argv.push_back("-n");
+                obj->argv.push_back(cp_zval_strval(tmpcopy));
+            }
+
+            zval_dtor(&tmpcopy);
+        }
+    }
+}
 
 zend_object_value rados_create_handler(zend_class_entry *type TSRMLS_DC)
 {
@@ -286,59 +341,38 @@ zend_object_value rados_create_handler(zend_class_entry *type TSRMLS_DC)
     return retval;
 }
 
-
 PHP_METHOD(Rados, __construct)
 {
     Rados *rados = NULL;
-    zval *object = getThis();
+    zval *object = getThis(), *options = NULL;
 
     rados = new Rados();
     rados_object *obj = (rados_object *)zend_object_store_get_object(object TSRMLS_CC);
     obj->rados = rados;
+
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|a", &options) == FAILURE) {
+        RETURN_NULL();
+    }
+
+    if (options) {
+        prepare_init_args(Z_ARRVAL_P(options), obj);
+    }
 }
 
 PHP_METHOD(Rados, initialize)
 {
     Rados *rados;
-
     rados_object *obj = (rados_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
+
     if (!obj->initialized) {
-
-        int argc = 1;
-        const char *argv[0];
-
-        if (INI_STR("rados.monitor_ip") != NULL) {
-            argv[argc++] = "-m";
-            argv[argc++] = INI_STR("rados.monitor_ip");
-        }
-
-        if (INI_STR("rados.cephx_keyfile") != NULL) {
-            argv[argc++] = "-K";
-            argv[argc++] = INI_STR("rados.cephx_keyfile");
-        }
-
-        if (INI_STR("rados.cephx_keyring") != NULL) {
-            argv[argc++] = "-k";
-            argv[argc++] = INI_STR("rados.cephx_keyring");
-        }
-
-        if (INI_STR("rados.cephx_name") != NULL) {
-            argv[argc++] = "-n";
-            argv[argc++] = INI_STR("rados.cephx_name");
-        }
-
-        if (INI_STR("rados.config_file") != NULL) {
-            argv[argc++] = "-c";
-            argv[argc++] = INI_STR("rados.config_file");
-        }
-
         rados = obj->rados;
-        if (rados->initialize(argc, argv) < 0) {
+        if (rados->initialize((int)obj->argv.size(), &obj->argv[0]) < 0) {
             zend_throw_exception(rados_radosexception_ce, "Failed to initialize RADOS!", 0 TSRMLS_CC);
             return;
         }
         obj->initialized = true;
     }
+
     RETURN_TRUE;
 }
 
@@ -502,9 +536,8 @@ PHP_METHOD(Rados, list_pools)
     }
 
     array_init(return_value);
-    int j = 0;
     for (std::list<std::string>::iterator i = pools.begin(); i != pools.end(); i++) {
-        add_next_index_string(return_value, i->c_str(), j++);
+        add_next_index_string(return_value, i->c_str(), 1);
     }
 }
 
@@ -548,17 +581,17 @@ PHP_METHOD(Rados, get_pool_stats)
         ALLOC_INIT_ZVAL(pool_stats);
         array_init(pool_stats);
 
-        add_assoc_string(pool_stats, "num_bytes", uint642char(i->second.num_bytes), 0);
+        add_assoc_string(pool_stats, "num_bytes", uint642char(i->second.num_bytes), 1);
         add_assoc_string(pool_stats, "num_kb", uint642char(i->second.num_kb), 1);
-        add_assoc_string(pool_stats, "num_objects", uint642char(i->second.num_objects), 2);
-        add_assoc_string(pool_stats, "num_object_clones", uint642char(i->second.num_object_clones), 3);
-        add_assoc_string(pool_stats, "num_object_copies", uint642char(i->second.num_object_copies), 4);
-        add_assoc_string(pool_stats, "num_objects_missing_on_primary", uint642char(i->second.num_objects_missing_on_primary), 5);
-        add_assoc_string(pool_stats, "num_objects_degraded", uint642char(i->second.num_objects_degraded), 6);
-        add_assoc_string(pool_stats, "num_rd", uint642char(i->second.num_rd), 7);
-        add_assoc_string(pool_stats, "num_rd_kb", uint642char(i->second.num_rd_kb), 8);
-        add_assoc_string(pool_stats, "num_wr", uint642char(i->second.num_wr), 9);
-        add_assoc_string(pool_stats, "num_wr_kb", uint642char(i->second.num_wr_kb), 10);
+        add_assoc_string(pool_stats, "num_objects", uint642char(i->second.num_objects), 1);
+        add_assoc_string(pool_stats, "num_object_clones", uint642char(i->second.num_object_clones), 1);
+        add_assoc_string(pool_stats, "num_object_copies", uint642char(i->second.num_object_copies), 1);
+        add_assoc_string(pool_stats, "num_objects_missing_on_primary", uint642char(i->second.num_objects_missing_on_primary), 1);
+        add_assoc_string(pool_stats, "num_objects_degraded", uint642char(i->second.num_objects_degraded), 1);
+        add_assoc_string(pool_stats, "num_rd", uint642char(i->second.num_rd), 1);
+        add_assoc_string(pool_stats, "num_rd_kb", uint642char(i->second.num_rd_kb), 1);
+        add_assoc_string(pool_stats, "num_wr", uint642char(i->second.num_wr), 1);
+        add_assoc_string(pool_stats, "num_wr_kb", uint642char(i->second.num_wr_kb), 1);
 
         add_assoc_zval(return_value, i->first.c_str(), pool_stats);
     }
@@ -576,10 +609,10 @@ PHP_METHOD(Rados, get_fs_stats)
     }
 
     array_init(return_value);
-    add_assoc_string(return_value, "kb", uint642char(stats.kb), 0);
+    add_assoc_string(return_value, "kb", uint642char(stats.kb), 1);
     add_assoc_string(return_value, "kb_used", uint642char(stats.kb_used), 1);
-    add_assoc_string(return_value, "kb_avail", uint642char(stats.kb_avail), 2);
-    add_assoc_string(return_value, "num_objects", uint642char(stats.num_objects), 3);
+    add_assoc_string(return_value, "kb_avail", uint642char(stats.kb_avail), 1);
+    add_assoc_string(return_value, "num_objects", uint642char(stats.num_objects), 1);
 }
 
 PHP_METHOD(Rados, snap_create)
@@ -649,9 +682,8 @@ PHP_METHOD(Rados, snap_list)
 
     array_init(return_value);
 
-    int j = 0;
     for (std::vector<snap_t>::iterator i = snaps.begin(); i != snaps.end(); i++) {
-        add_next_index_string(return_value, uint642char(*i), j++);
+        add_next_index_string(return_value, uint642char(*i), 1);
     }
 }
 
@@ -730,50 +762,6 @@ PHP_METHOD(Rados, snap_lookup)
     RETURN_STRINGL(uint642char(snapid), sizeof(uint642char(snapid))-2, 1);
 }
 
-PHP_METHOD(Rados, selfmanaged_snap_create)
-{
-    php_rados_pool *pool_r;
-    zval *zpool;
-    uint64_t snapid;
-
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &zpool) == FAILURE) {
-        RETURN_FALSE;
-    }
-
-    ZEND_FETCH_RESOURCE(pool_r, php_rados_pool*, &zpool, -1, PHP_RADOS_POOL_RES_NAME, le_rados_pool);
-
-    Rados *rados;
-    rados_object *obj = (rados_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
-    rados = obj->rados;
-    if (rados->selfmanaged_snap_create(pool_r->pool, &snapid) < 0) {
-        RETURN_FALSE;
-    }
-
-    RETURN_STRINGL(uint642char(snapid), sizeof(snapid), 1);
-}
-
-PHP_METHOD(Rados, selfmanaged_snap_remove)
-{
-    php_rados_pool *pool_r;
-    zval *zpool;
-    uint64_t *snapid;
-
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &zpool, &snapid) == FAILURE) {
-        RETURN_FALSE;
-    }
-
-    ZEND_FETCH_RESOURCE(pool_r, php_rados_pool*, &zpool, -1, PHP_RADOS_POOL_RES_NAME, le_rados_pool);
-
-    Rados *rados;
-    rados_object *obj = (rados_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
-    rados = obj->rados;
-    if (rados->selfmanaged_snap_create(pool_r->pool, snapid) < 0) {
-        RETURN_FALSE;
-    }
-
-    RETURN_TRUE;
-}
-
 PHP_METHOD(Rados, snap_rollback_object)
 {
     php_rados_pool *pool_r;
@@ -802,7 +790,7 @@ PHP_METHOD(Rados, list_objects)
     Rados::ListCtx ctx;
     php_rados_pool *pool_r;
     zval *zpool;
-    int j, r = 0;
+    int r = 0;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &zpool) == FAILURE) {
         RETURN_FALSE;
@@ -824,7 +812,7 @@ PHP_METHOD(Rados, list_objects)
             RETURN_NULL();
 
         for (std::list<std::string>::iterator i = l.begin(); i != l.end(); ++i) {
-            add_next_index_string(return_value, i->c_str(), j++);
+            add_next_index_string(return_value, i->c_str(), 1);
         }
     } while (r);
     rados->list_objects_close(ctx);
@@ -861,7 +849,7 @@ PHP_METHOD(Rados, list_objects_more)
     php_rados_listctx *listctx_r;
     zval *zctx;
     int maxobjects;
-    int j, r = 0;
+    int r = 0;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &zctx, &maxobjects) == FAILURE) {
         RETURN_FALSE;
@@ -887,7 +875,7 @@ PHP_METHOD(Rados, list_objects_more)
             RETURN_NULL();
 
         for (std::list<std::string>::iterator i = l.begin(); i != l.end(); ++i) {
-            add_next_index_string(return_value, i->c_str(), j++);
+            add_next_index_string(return_value, i->c_str(), 1);
         }
     } while (r);
 }
@@ -986,8 +974,8 @@ PHP_METHOD(Rados, stat)
     }
 
     add_assoc_string(return_value, "oid", oid, 1);
-    add_assoc_string(return_value, "size", uint642char(size), 2);
-    add_assoc_string(return_value, "mtime", uint642char(mtime), 3);
+    add_assoc_string(return_value, "size", uint642char(size), 1);
+    add_assoc_string(return_value, "mtime", uint642char(mtime), 1);
 }
 
 PHP_METHOD(Rados, write_full)
@@ -1179,7 +1167,7 @@ PHP_METHOD(Rados, setxattr)
     rados_object *obj = (rados_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
     rados = obj->rados;
 
-    bl.append(data, data_len);
+    bl.append(data, data_len + 1);
 
     if (rados->setxattr(pool_r->pool, oid, xattr, bl) < 0) {
         RETURN_FALSE;
@@ -1209,25 +1197,14 @@ PHP_METHOD(Rados, getxattrs)
     }
 
     array_init(return_value);
-    int j = 0;
     for(std::map<std::string, bufferlist>::iterator i = attrset.begin(); i != attrset.end(); ++i) {
-        add_assoc_string(return_value, i->first.c_str(), i->second.c_str(), j++);
+        add_assoc_string(return_value, i->first.c_str(), i->second.c_str(), 1);
     }
 
 }
 
-PHP_INI_BEGIN()
-    PHP_INI_ENTRY("rados.config_file", NULL, PHP_INI_ALL, NULL)
-    PHP_INI_ENTRY("rados.monitor_ip", NULL, PHP_INI_ALL, NULL)
-    PHP_INI_ENTRY("rados.cephx_keyfile", NULL, PHP_INI_ALL, NULL)
-    PHP_INI_ENTRY("rados.cephx_keyring", NULL, PHP_INI_ALL, NULL)
-    PHP_INI_ENTRY("rados.cephx_name", NULL, PHP_INI_ALL, NULL)
-PHP_INI_END()
-
 PHP_MINIT_FUNCTION(rados)
 {
-    REGISTER_INI_ENTRIES();
-
     le_rados_pool = zend_register_list_destructors_ex(NULL, NULL, PHP_RADOS_POOL_RES_NAME, module_number);
     le_rados_listctx = zend_register_list_destructors_ex(NULL, NULL, PHP_RADOS_LISTCTX_RES_NAME, module_number);
     zend_class_entry ce;
@@ -1248,20 +1225,12 @@ PHP_MINIT_FUNCTION(rados)
     return SUCCESS;
 }
 
-PHP_MSHUTDOWN_FUNCTION(rados)
-{
-    UNREGISTER_INI_ENTRIES();
-    return SUCCESS;
-}
-
 PHP_MINFO_FUNCTION(rados)
 {
     php_info_print_table_start();
     php_info_print_table_row(2, "Rados", "enabled");
     php_info_print_table_row(2, "Rados extension version", PHP_RADOS_EXTVER);
     php_info_print_table_end();
-
-    DISPLAY_INI_ENTRIES();
 }
 
 zend_module_entry rados_module_entry = {
@@ -1269,7 +1238,7 @@ zend_module_entry rados_module_entry = {
     PHP_RADOS_EXTNAME,
     NULL,                  /* Functions */
     PHP_MINIT(rados),      /* MINIT */
-    PHP_MSHUTDOWN(rados),  /* MSHUTDOWN */
+    NULL,                  /* MSHUTDOWN */
     NULL,                  /* RINIT */
     NULL,                  /* RSHUTDOWN */
     PHP_MINFO(rados),      /* MINFO */
