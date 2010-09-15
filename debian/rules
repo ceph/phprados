@@ -1,0 +1,57 @@
+#!/usr/bin/make -f
+export DH_VERBOSE=1
+
+configure: configure-stamp
+configure-stamp:
+	dh_testdir
+	touch configure-stamp
+build: build-stamp
+build-stamp: configure-stamp
+	dh_testdir
+
+	phpize
+	./configure
+
+	$(MAKE)
+
+	touch $@
+clean:
+	dh_testdir
+	dh_testroot
+	rm -fr build-stamp configure-stamp debian/php5-rados
+
+	test ! -f Makefile || $(MAKE) clean
+
+	phpize --clean
+
+	dh_clean
+install: build
+	dh_testdir
+	dh_testroot
+	dh_clean
+	dh_installdirs
+
+binary-indep: build install
+
+binary-arch: build install
+	dh_testdir
+	dh_testroot
+	mkdir -p debian/tmp
+	mkdir -p debian/tmp`php-config --extension-dir`
+	cp modules/rados.so debian/tmp`php-config --extension-dir`
+	mkdir -p debian/tmp/etc/php5/conf.d
+	echo "extension=rados.so" > debian/tmp/etc/php5/conf.d/rados.ini
+	dh_install
+	dh_lintian
+	dh_link
+	dh_strip
+	dh_compress
+	dh_fixperms
+	dh_makeshlibs -n
+	dh_installdeb
+	dh_shlibdeps
+	dh_gencontrol
+	dh_md5sums
+	dh_builddeb
+
+binary: binary-indep binary-arch

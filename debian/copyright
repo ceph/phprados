@@ -1,0 +1,29 @@
+This work was packaged for Debian by:
+
+    Wido den Hollander <wido@widodh.nl>
+
+It was downloaded from:
+
+    http://www.widodh.nl/git/phprados.git
+
+Upstream Author(s):
+
+    Wido den Hollander <wido@widodh.nl>
+    Tim Jurcka <tim@jurcka.eu>
+
+Copyright:
+
+    Copyright (C) 2010 Wido den Hollander <wido@widodh.nl>, Tim Jurcka <tim@jurcka.eu>
+
+License:
+
+    This is free software; you can redistribute it and/or
+    modify it under the terms of the GNU Lesser General Public
+    License version 2.1, as published by the Free Software
+    Foundation.
+
+The Debian packaging is:
+
+    Copyright (C) 2010 Wido den Hollander <wido@widodh.nl>
+
+and is licensed under the LGPL version 2.1, see above.
