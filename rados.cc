@@ -1166,7 +1166,7 @@ PHP_METHOD(Rados, setxattr)
     rados_object *obj = (rados_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
     rados = obj->rados;
 
-    bl.append(data, data_len);
+    bl.append(data, data_len + 1);
 
     if (rados->setxattr(pool_r->pool, oid, xattr, bl) < 0) {
         RETURN_FALSE;
