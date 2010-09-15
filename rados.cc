@@ -535,9 +535,8 @@ PHP_METHOD(Rados, list_pools)
     }
 
     array_init(return_value);
-    int j = 0;
     for (std::list<std::string>::iterator i = pools.begin(); i != pools.end(); i++) {
-        add_next_index_string(return_value, i->c_str(), j++);
+        add_next_index_string(return_value, i->c_str(), 1);
     }
 }
 
@@ -581,17 +580,17 @@ PHP_METHOD(Rados, get_pool_stats)
         ALLOC_INIT_ZVAL(pool_stats);
         array_init(pool_stats);
 
-        add_assoc_string(pool_stats, "num_bytes", uint642char(i->second.num_bytes), 0);
+        add_assoc_string(pool_stats, "num_bytes", uint642char(i->second.num_bytes), 1);
         add_assoc_string(pool_stats, "num_kb", uint642char(i->second.num_kb), 1);
-        add_assoc_string(pool_stats, "num_objects", uint642char(i->second.num_objects), 2);
-        add_assoc_string(pool_stats, "num_object_clones", uint642char(i->second.num_object_clones), 3);
-        add_assoc_string(pool_stats, "num_object_copies", uint642char(i->second.num_object_copies), 4);
-        add_assoc_string(pool_stats, "num_objects_missing_on_primary", uint642char(i->second.num_objects_missing_on_primary), 5);
-        add_assoc_string(pool_stats, "num_objects_degraded", uint642char(i->second.num_objects_degraded), 6);
-        add_assoc_string(pool_stats, "num_rd", uint642char(i->second.num_rd), 7);
-        add_assoc_string(pool_stats, "num_rd_kb", uint642char(i->second.num_rd_kb), 8);
-        add_assoc_string(pool_stats, "num_wr", uint642char(i->second.num_wr), 9);
-        add_assoc_string(pool_stats, "num_wr_kb", uint642char(i->second.num_wr_kb), 10);
+        add_assoc_string(pool_stats, "num_objects", uint642char(i->second.num_objects), 1);
+        add_assoc_string(pool_stats, "num_object_clones", uint642char(i->second.num_object_clones), 1);
+        add_assoc_string(pool_stats, "num_object_copies", uint642char(i->second.num_object_copies), 1);
+        add_assoc_string(pool_stats, "num_objects_missing_on_primary", uint642char(i->second.num_objects_missing_on_primary), 1);
+        add_assoc_string(pool_stats, "num_objects_degraded", uint642char(i->second.num_objects_degraded), 1);
+        add_assoc_string(pool_stats, "num_rd", uint642char(i->second.num_rd), 1);
+        add_assoc_string(pool_stats, "num_rd_kb", uint642char(i->second.num_rd_kb), 1);
+        add_assoc_string(pool_stats, "num_wr", uint642char(i->second.num_wr), 1);
+        add_assoc_string(pool_stats, "num_wr_kb", uint642char(i->second.num_wr_kb), 1);
 
         add_assoc_zval(return_value, i->first.c_str(), pool_stats);
     }
@@ -609,10 +608,10 @@ PHP_METHOD(Rados, get_fs_stats)
     }
 
     array_init(return_value);
-    add_assoc_string(return_value, "kb", uint642char(stats.kb), 0);
+    add_assoc_string(return_value, "kb", uint642char(stats.kb), 1);
     add_assoc_string(return_value, "kb_used", uint642char(stats.kb_used), 1);
-    add_assoc_string(return_value, "kb_avail", uint642char(stats.kb_avail), 2);
-    add_assoc_string(return_value, "num_objects", uint642char(stats.num_objects), 3);
+    add_assoc_string(return_value, "kb_avail", uint642char(stats.kb_avail), 1);
+    add_assoc_string(return_value, "num_objects", uint642char(stats.num_objects), 1);
 }
 
 PHP_METHOD(Rados, snap_create)
@@ -682,9 +681,8 @@ PHP_METHOD(Rados, snap_list)
 
     array_init(return_value);
 
-    int j = 0;
     for (std::vector<snap_t>::iterator i = snaps.begin(); i != snaps.end(); i++) {
-        add_next_index_string(return_value, uint642char(*i), j++);
+        add_next_index_string(return_value, uint642char(*i), 1);
     }
 }
 
@@ -791,7 +789,7 @@ PHP_METHOD(Rados, list_objects)
     Rados::ListCtx ctx;
     php_rados_pool *pool_r;
     zval *zpool;
-    int j, r = 0;
+    int r = 0;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &zpool) == FAILURE) {
         RETURN_FALSE;
@@ -813,7 +811,7 @@ PHP_METHOD(Rados, list_objects)
             RETURN_NULL();
 
         for (std::list<std::string>::iterator i = l.begin(); i != l.end(); ++i) {
-            add_next_index_string(return_value, i->c_str(), j++);
+            add_next_index_string(return_value, i->c_str(), 1);
         }
     } while (r);
     rados->list_objects_close(ctx);
@@ -850,7 +848,7 @@ PHP_METHOD(Rados, list_objects_more)
     php_rados_listctx *listctx_r;
     zval *zctx;
     int maxobjects;
-    int j, r = 0;
+    int r = 0;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &zctx, &maxobjects) == FAILURE) {
         RETURN_FALSE;
@@ -876,7 +874,7 @@ PHP_METHOD(Rados, list_objects_more)
             RETURN_NULL();
 
         for (std::list<std::string>::iterator i = l.begin(); i != l.end(); ++i) {
-            add_next_index_string(return_value, i->c_str(), j++);
+            add_next_index_string(return_value, i->c_str(), 1);
         }
     } while (r);
 }
@@ -975,8 +973,8 @@ PHP_METHOD(Rados, stat)
     }
 
     add_assoc_string(return_value, "oid", oid, 1);
-    add_assoc_string(return_value, "size", uint642char(size), 2);
-    add_assoc_string(return_value, "mtime", uint642char(mtime), 3);
+    add_assoc_string(return_value, "size", uint642char(size), 1);
+    add_assoc_string(return_value, "mtime", uint642char(mtime), 1);
 }
 
 PHP_METHOD(Rados, write_full)
@@ -1198,9 +1196,8 @@ PHP_METHOD(Rados, getxattrs)
     }
 
     array_init(return_value);
-    int j = 0;
     for(std::map<std::string, bufferlist>::iterator i = attrset.begin(); i != attrset.end(); ++i) {
-        add_assoc_string(return_value, i->first.c_str(), i->second.c_str(), j++);
+        add_assoc_string(return_value, i->first.c_str(), i->second.c_str(), 1);
     }
 
 }
