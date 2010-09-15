@@ -561,7 +561,7 @@ PHP_METHOD(Rados, get_pool_stats)
         zval **arr_value;
         arr_hash = Z_ARRVAL_P(pools);
 
-        for(zend_hash_internal_pointer_reset_ex(arr_hash, &hash_pos); zend_hash_get_current_data_ex(arr_hash, (void**) &arr_value, &hash_pos) == SUCCESS; zend_hash_move_forward_ex(arr_hash, &hash_pos)) {
+        for (zend_hash_internal_pointer_reset_ex(arr_hash, &hash_pos); zend_hash_get_current_data_ex(arr_hash, (void**) &arr_value, &hash_pos) == SUCCESS; zend_hash_move_forward_ex(arr_hash, &hash_pos)) {
             if (Z_TYPE_PP(arr_value) == IS_STRING) {
                 v.push_back(Z_STRVAL_PP(arr_value));
             }
@@ -1199,7 +1199,7 @@ PHP_METHOD(Rados, getxattrs)
     }
 
     array_init(return_value);
-    for(std::map<std::string, bufferlist>::iterator i = attrset.begin(); i != attrset.end(); ++i) {
+    for (std::map<std::string, bufferlist>::iterator i = attrset.begin(); i != attrset.end(); ++i) {
         add_assoc_string(return_value, i->first.c_str(), i->second.c_str(), 1);
     }
 
