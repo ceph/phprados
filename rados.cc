@@ -312,6 +312,9 @@ namespace {
                 obj->argv.push_back("-K");
                 obj->argv.push_back(cp_zval_strval(tmpcopy));
             } else if (0 == strcmp(key, "cephx_keyring")) {
+                obj->argv.push_back("-k");
+                obj->argv.push_back(cp_zval_strval(tmpcopy));
+            } else if (0 == strcmp(key, "cephx_name")) {
                 obj->argv.push_back("-n");
                 obj->argv.push_back(cp_zval_strval(tmpcopy));
             }
