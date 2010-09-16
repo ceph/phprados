@@ -12,6 +12,7 @@ extern "C" {
 #ifdef ZTS
 #include "TSRM.h"
 #endif
+#include "php_rados_stream_wrappers.h"
 }
 
 #include <rados/librados.hpp>
