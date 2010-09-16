@@ -235,6 +235,37 @@ const zend_function_entry rados_rados_methods[] = {
     {NULL, NULL, NULL}
 };
 
+php_stream_ops rados_ops = {
+    rados_stream_write,
+    rados_stream_read,
+    rados_stream_close,
+    rados_stream_flush,
+    "RADOS stream",
+    NULL,
+    NULL,
+    NULL,
+    NULL
+};
+
+php_stream_wrapper_ops rados_stream_wops = {
+    rados_wrapper_open,
+    rados_wrapper_close,
+    NULL,
+    rados_wrapper_stat,
+    NULL,
+    "RADOS",
+    rados_wrapper_unlink,
+    NULL,
+    NULL,
+    NULL
+};
+
+php_stream_wrapper php_stream_rados_wrapper = {
+    &rados_stream_wops,
+    NULL,
+    0
+};
+
 const zend_function_entry php_rados_radosexception_methods[] = {
     {NULL, NULL, NULL}
 };
@@ -321,6 +352,51 @@ namespace {
 
             zval_dtor(&tmpcopy);
         }
+    }
+
+    static php_stream * rados_wrapper_open(php_stream_wrapper *wrapper, char *path, char *mode, int options, char **opened_path, php_stream_context *context STREAMS_DC TSRMLS_DC)
+    {
+
+    }
+
+    static int rados_wrapper_close(php_stream_wrapper *wrapper, php_stream *stream TSRMLS_DC)
+    {
+        return 0;
+    }
+
+    static int rados_stream_close(php_stream *stream, int close_handle TSRMLS_DC)
+    {
+        return 0;
+    }
+
+    static size_t rados_stream_read(php_stream *stream, char *buf, size_t count TSRMLS_DC)
+    {
+        return 0;
+    }
+
+    static size_t rados_stream_write(php_stream *stream, const char *buf, size_t count TSRMLS_DC)
+    {
+        return 0;
+    }
+
+    static int rados_stream_flush(php_stream *stream TSRMLS_DC)
+    {
+        return 1;
+    }
+
+    static int rados_wrapper_stat(php_stream_wrapper *wrapper, char *url, int flags, php_stream_statbuf *ssb, php_stream_context *context TSRMLS_DC)
+    {
+        return 1;
+    }
+
+    static int rados_wrapper_unlink(php_stream_wrapper *wrapper, char *url, int options, php_stream_context *context TSRMLS_DC)
+    {
+        return 1;
+    }
+
+    static int rados_wrapper_rename(php_stream_wrapper *wrapper, char *url_from, char *url_to, int options, php_stream_context *context TSRMLS_DC)
+    {
+        return 1;
     }
 }
 
@@ -1221,6 +1297,8 @@ PHP_MINIT_FUNCTION(rados)
     rados_radosexception_ce = zend_register_internal_class_ex(&ce, zend_exception_get_default(TSRMLS_C), NULL TSRMLS_CC);
     rados_radosexception_ce->ce_flags |= ZEND_ACC_FINAL;
     zend_declare_property_long(rados_radosexception_ce, "code", sizeof("code")-1, 0, ZEND_ACC_PUBLIC TSRMLS_CC);
+
+    //php_register_url_stream_wrapper("rados", &php_stream_rados_wrapper TSRMLS_CC);
 
     return SUCCESS;
 }

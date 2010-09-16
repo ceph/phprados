@@ -7,12 +7,12 @@
 extern "C" {
 #include "php.h"
 #include "php_ini.h"
+#include "php_streams.h"
 #include "zend_exceptions.h"
 #include "ext/standard/info.h"
 #ifdef ZTS
 #include "TSRM.h"
 #endif
-#include "php_rados_stream_wrappers.h"
 }
 
 #include <rados/librados.hpp>
@@ -73,6 +73,17 @@ PHP_METHOD(Rados, trunc);
 PHP_METHOD(Rados, getxattr);
 PHP_METHOD(Rados, setxattr);
 PHP_METHOD(Rados, getxattrs);
+
+/* Stream wrappers */
+static size_t rados_stream_write(php_stream *stream, const char *buf, size_t count TSRMLS_DC);
+static size_t rados_stream_read(php_stream *stream, char *buf, size_t count TSRMLS_DC);
+static int rados_stream_close(php_stream *stream, int close_handle TSRMLS_DC);
+static int rados_stream_flush(php_stream *stream TSRMLS_DC);
+
+static php_stream * rados_wrapper_open(php_stream_wrapper *wrapper, char *path, char *mode, int options, char **opened_path, php_stream_context *context STREAMS_DC TSRMLS_DC);
+static int rados_wrapper_close(php_stream_wrapper *wrapper, php_stream *stream TSRMLS_DC);
+static int rados_wrapper_stat(php_stream_wrapper *wrapper, char *url, int flags, php_stream_statbuf *ssb, php_stream_context *context TSRMLS_DC);
+static int rados_wrapper_unlink(php_stream_wrapper *wrapper, char *url, int options, php_stream_context *context TSRMLS_DC);
 
 extern zend_module_entry rados_module_entry;
 #define phpext_rados_ptr &rados_module_entry;
