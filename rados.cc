@@ -398,6 +398,12 @@ PHP_METHOD(Rados, open_pool)
     Rados *rados;
     rados_object *obj = (rados_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
     rados = obj->rados;
+
+    if (!obj->initialized) {
+        zend_throw_exception(rados_radosexception_ce, "RADOS has not been initialized yet.", 0 TSRMLS_CC);
+        return;
+    }
+
     if(rados->open_pool(spool, &pool) < 0) {
         zend_throw_exception(rados_radosexception_ce, "The specified RADOS pool could not be opened.", 0 TSRMLS_CC);
         return;
