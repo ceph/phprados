@@ -1148,7 +1148,12 @@ PHP_METHOD(Rados, getxattr)
         RETURN_FALSE;
     }
 
-    RETURN_STRINGL(bl.c_str(), strlen(bl.c_str()), 1);
+    char *value = bl.c_str();
+    if (value == NULL) {
+        RETURN_FALSE;
+    }
+
+    RETURN_STRINGL(value, strlen(value), 1);
 }
 
 PHP_METHOD(Rados, setxattr)
@@ -1200,7 +1205,12 @@ PHP_METHOD(Rados, getxattrs)
 
     array_init(return_value);
     for (std::map<std::string, bufferlist>::iterator i = attrset.begin(); i != attrset.end(); ++i) {
-        add_assoc_string(return_value, i->first.c_str(), i->second.c_str(), 1);
+        const char *key =  i->first.c_str();
+        char *value = i->second.c_str();
+        if (value == NULL) {
+            value = "";
+        }
+        add_assoc_string(return_value, key, value, 1);
     }
 
 }
