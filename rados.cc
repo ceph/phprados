@@ -1243,9 +1243,20 @@ PHP_MINIT_FUNCTION(rados)
 
 PHP_MINFO_FUNCTION(rados)
 {
+    int major, minor, extra = 0;
+    std::stringstream librados_version, compiled_version;
+
+    Rados rados;
+    rados.version(&major, &minor, &extra);
+
+    librados_version << major << "." << minor << "." << extra;
+    compiled_version << LIBRADOS_VER_MAJOR << "." << LIBRADOS_VER_MINOR << "." << LIBRADOS_VER_EXTRA;
+
     php_info_print_table_start();
     php_info_print_table_row(2, "Rados", "enabled");
     php_info_print_table_row(2, "Rados extension version", PHP_RADOS_EXTVER);
+    php_info_print_table_row(2, "librados version (linked)", librados_version.str().c_str());
+    php_info_print_table_row(2, "librados version (compiled)", compiled_version.str().c_str());
     php_info_print_table_end();
 }
 
