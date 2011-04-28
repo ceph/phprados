@@ -57,7 +57,6 @@ ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_INFO(arginfo_rados_conf_get, 0)
     ZEND_ARG_INFO(0, option)
-    ZEND_ARG_INFO(0, value)
 ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_INFO(arginfo_rados_shutdown, 0)
@@ -222,12 +221,10 @@ PHP_METHOD(Rados, conf_get)
 {
 
     char *option = NULL;
-    char *value = NULL;
     int option_len = 0;
-    int value_len = 0;
     std::string rvalue;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ss", &option, &option_len, &value, &value_len) == FAILURE) {
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &option, &option_len) == FAILURE) {
         RETURN_NULL();
     }
 
@@ -239,9 +236,7 @@ PHP_METHOD(Rados, conf_get)
         RETURN_FALSE;
     }
 
-    strcpy(value, rvalue.c_str());
-
-    RETURN_TRUE;
+    RETURN_STRINGL(rvalue.c_str(), rvalue.length(), 1);
 }
 
 PHP_METHOD(Rados, shutdown)
