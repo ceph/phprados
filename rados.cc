@@ -62,6 +62,20 @@ ZEND_END_ARG_INFO()
 ZEND_BEGIN_ARG_INFO(arginfo_rados_shutdown, 0)
 ZEND_END_ARG_INFO()
 
+ZEND_BEGIN_ARG_INFO(arginfo_rados_pool_create, 0)
+    ZEND_ARG_INFO(0, name)
+    ZEND_ARG_INFO(0, auid)
+    ZEND_ARG_INFO(0, crushrule)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO(arginfo_rados_pool_lookup, 0)
+    ZEND_ARG_INFO(0, name)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO(arginfo_rados_pool_delete, 0)
+    ZEND_ARG_INFO(0, name)
+ZEND_END_ARG_INFO()
+
 const zend_function_entry rados_rados_methods[] = {
     PHP_ME(Rados, __construct, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_CTOR)
     PHP_ME(Rados, init, NULL, ZEND_ACC_PUBLIC)
@@ -70,6 +84,9 @@ const zend_function_entry rados_rados_methods[] = {
     PHP_ME(Rados, conf_set, NULL, ZEND_ACC_PUBLIC)
     PHP_ME(Rados, conf_get, NULL, ZEND_ACC_PUBLIC)
     PHP_ME(Rados, shutdown, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, pool_create, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, pool_lookup, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, pool_delete, NULL, ZEND_ACC_PUBLIC)
     {NULL, NULL, NULL}
 };
 
@@ -246,6 +263,74 @@ PHP_METHOD(Rados, shutdown)
 
     rados = obj->rados;
     rados->shutdown();
+
+    RETURN_TRUE;
+}
+
+PHP_METHOD(Rados, pool_create)
+{
+    char *name = NULL;
+    int name_len = 0;
+    long auid, crushrule = NULL;
+
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s|ll", &name, &name_len, &auid, &crushrule) == FAILURE) {
+        RETURN_NULL();
+    }
+
+    Rados *rados;
+    rados_object *obj = (rados_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
+
+    rados = obj->rados;
+
+    if (auid == NULL || crushrule == NULL) {
+        if (rados->pool_create(name) < 0) {
+            RETURN_FALSE;
+        }
+    } else {
+        if (rados->pool_create(name, auid, crushrule) < 0) {
+            RETURN_FALSE;
+        }
+    }
+
+    RETURN_TRUE;
+}
+
+PHP_METHOD(Rados, pool_lookup)
+{
+    char *name = NULL;
+    int name_len = 0;
+
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &name, &name_len) == FAILURE) {
+        RETURN_NULL();
+    }
+
+    Rados *rados;
+    rados_object *obj = (rados_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
+
+    rados = obj->rados;
+    if (rados->pool_lookup(name) < 0) {
+        RETURN_FALSE;
+    }
+
+    RETURN_TRUE;
+}
+
+PHP_METHOD(Rados, pool_delete)
+{
+    char *name = NULL;
+    int name_len = 0;
+
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &name, &name_len) == FAILURE) {
+        RETURN_NULL();
+    }
+
+    Rados *rados;
+    rados_object *obj = (rados_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
+
+    rados = obj->rados;
+    if (rados->pool_delete(name) < 0) {
+        RETURN_FALSE;
+    }
 
     RETURN_TRUE;
 }
