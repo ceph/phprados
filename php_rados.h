@@ -38,6 +38,8 @@ PHP_METHOD(Rados, pool_create);
 PHP_METHOD(Rados, pool_lookup);
 PHP_METHOD(Rados, pool_delete);
 PHP_METHOD(Rados, pool_list);
+PHP_METHOD(Rados, get_pool_stats);
+PHP_METHOD(Rados, cluster_stat);
 
 extern zend_module_entry rados_module_entry;
 #define phpext_rados_ptr &rados_module_entry;
