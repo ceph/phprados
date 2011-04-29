@@ -76,6 +76,9 @@ ZEND_BEGIN_ARG_INFO(arginfo_rados_pool_delete, 0)
     ZEND_ARG_INFO(0, name)
 ZEND_END_ARG_INFO()
 
+ZEND_BEGIN_ARG_INFO(arginfo_rados_pool_list, 0)
+ZEND_END_ARG_INFO()
+
 const zend_function_entry rados_rados_methods[] = {
     PHP_ME(Rados, __construct, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_CTOR)
     PHP_ME(Rados, init, NULL, ZEND_ACC_PUBLIC)
@@ -87,6 +90,7 @@ const zend_function_entry rados_rados_methods[] = {
     PHP_ME(Rados, pool_create, NULL, ZEND_ACC_PUBLIC)
     PHP_ME(Rados, pool_lookup, NULL, ZEND_ACC_PUBLIC)
     PHP_ME(Rados, pool_delete, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, pool_list, NULL, ZEND_ACC_PUBLIC)
     {NULL, NULL, NULL}
 };
 
@@ -333,6 +337,22 @@ PHP_METHOD(Rados, pool_delete)
     }
 
     RETURN_TRUE;
+}
+
+PHP_METHOD(Rados, pool_list)
+{
+    std::list<std::string> pools;
+
+    Rados *rados;
+    rados_object *obj = (rados_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
+    if(obj->rados->pool_list(pools) < 0) {
+        RETURN_FALSE;
+    }
+
+    array_init(return_value);
+    for (std::list<std::string>::iterator i = pools.begin(); i != pools.end(); i++) {
+        add_next_index_string(return_value, i->c_str(), 1);
+    }
 }
 
 PHP_MINIT_FUNCTION(rados)
