@@ -34,6 +34,10 @@ PHP_METHOD(Rados, conf_read_file);
 PHP_METHOD(Rados, conf_set);
 PHP_METHOD(Rados, conf_get);
 PHP_METHOD(Rados, shutdown);
+PHP_METHOD(Rados, pool_create);
+PHP_METHOD(Rados, pool_lookup);
+PHP_METHOD(Rados, pool_delete);
+PHP_METHOD(Rados, pool_list);
 
 extern zend_module_entry rados_module_entry;
 #define phpext_rados_ptr &rados_module_entry;
