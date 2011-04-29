@@ -182,11 +182,8 @@ PHP_METHOD(Rados, init)
 
 PHP_METHOD(Rados, connect)
 {
-    Rados *rados;
     rados_object *obj = (rados_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
-
-    rados = obj->rados;
-    if (rados->connect() < 0) {
+    if (obj->rados->connect() < 0) {
         zend_throw_exception(rados_radosexception_ce, "Failed to connect to the RADOS cluster", 0 TSRMLS_CC);
         return;
     }
@@ -204,11 +201,8 @@ PHP_METHOD(Rados, conf_read_file)
         RETURN_NULL();
     }
 
-    Rados *rados;
     rados_object *obj = (rados_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
-
-    rados = obj->rados;
-    if (rados->conf_read_file(path) < 0) {
+    if (obj->rados->conf_read_file(path) < 0) {
         RETURN_FALSE;
     }
 
@@ -227,11 +221,8 @@ PHP_METHOD(Rados, conf_set)
         RETURN_NULL();
     }
 
-    Rados *rados;
     rados_object *obj = (rados_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
-
-    rados = obj->rados;
-    if (rados->conf_set(option, value) < 0) {
+    if (obj->rados->conf_set(option, value) < 0) {
         RETURN_FALSE;
     }
 
@@ -249,11 +240,8 @@ PHP_METHOD(Rados, conf_get)
         RETURN_NULL();
     }
 
-    Rados *rados;
     rados_object *obj = (rados_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
-
-    rados = obj->rados;
-    if (rados->conf_get(option, rvalue) < 0) {
+    if (obj->rados->conf_get(option, rvalue) < 0) {
         RETURN_FALSE;
     }
 
@@ -262,11 +250,8 @@ PHP_METHOD(Rados, conf_get)
 
 PHP_METHOD(Rados, shutdown)
 {
-    Rados *rados;
     rados_object *obj = (rados_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
-
-    rados = obj->rados;
-    rados->shutdown();
+    obj->rados->shutdown();
 
     RETURN_TRUE;
 }
@@ -281,17 +266,13 @@ PHP_METHOD(Rados, pool_create)
         RETURN_NULL();
     }
 
-    Rados *rados;
     rados_object *obj = (rados_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
-
-    rados = obj->rados;
-
     if (auid == NULL || crushrule == NULL) {
-        if (rados->pool_create(name) < 0) {
+        if (obj->rados->pool_create(name) < 0) {
             RETURN_FALSE;
         }
     } else {
-        if (rados->pool_create(name, auid, crushrule) < 0) {
+        if (obj->rados->pool_create(name, auid, crushrule) < 0) {
             RETURN_FALSE;
         }
     }
@@ -308,11 +289,8 @@ PHP_METHOD(Rados, pool_lookup)
         RETURN_NULL();
     }
 
-    Rados *rados;
     rados_object *obj = (rados_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
-
-    rados = obj->rados;
-    if (rados->pool_lookup(name) < 0) {
+    if (obj->rados->pool_lookup(name) < 0) {
         RETURN_FALSE;
     }
 
@@ -328,11 +306,8 @@ PHP_METHOD(Rados, pool_delete)
         RETURN_NULL();
     }
 
-    Rados *rados;
     rados_object *obj = (rados_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
-
-    rados = obj->rados;
-    if (rados->pool_delete(name) < 0) {
+    if (obj->rados->pool_delete(name) < 0) {
         RETURN_FALSE;
     }
 
