@@ -25,6 +25,7 @@ ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_INFO(arginfo_radosioctx_create, 0)
     ZEND_ARG_INFO(0, object)
+    ZEND_ARG_INFO(0, exclusive)
 ZEND_END_ARG_INFO()
 
 const zend_function_entry php_rados_ioctx_methods[] = {
@@ -53,13 +54,14 @@ PHP_METHOD(RadosIoCtx, create)
 {
     char *object = NULL;
     int object_len = 0;
+    bool exclusive = false;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &object, &object_len) == FAILURE) {
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s|b", &object, &object_len, &exclusive) == FAILURE) {
         RETURN_NULL();
     }
 
     radosioctx_object *obj = (radosioctx_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
-    if (obj->ioctx->create(object, false) < 0) {
+    if (obj->ioctx->create(object, exclusive) < 0) {
         RETURN_FALSE;
     }
 
