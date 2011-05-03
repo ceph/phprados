@@ -158,10 +158,9 @@ zend_object_value rados_create_handler(zend_class_entry *type TSRMLS_DC)
 PHP_METHOD(Rados, __construct)
 {
     Rados *rados = NULL;
-    zval *object = getThis(), *options = NULL;
 
     rados = new Rados();
-    rados_object *obj = (rados_object *)zend_object_store_get_object(object TSRMLS_CC);
+    rados_object *obj = (rados_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
     obj->rados = rados;
 }
 
