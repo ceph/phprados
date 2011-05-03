@@ -54,5 +54,5 @@ if test $PHP_RADOS != "no"; then
 
     PHP_REQUIRE_CXX()
     PHP_SUBST(RADOS_SHARED_LIBADD)
-    PHP_NEW_EXTENSION(rados, rados.cc, $ext_shared)
+    PHP_NEW_EXTENSION(rados, [rados.cc ioctx.cc], $ext_shared)
 fi

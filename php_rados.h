@@ -23,6 +23,19 @@ using namespace librados;
 #define PHP_RADOS_POOL_MAX_LENGTH 128
 #define PHP_RADOS_MAX_OBJECTS 1024
 
+struct rados_object
+{
+    zend_object std;
+    Rados *rados;
+    bool initialized;
+    std::vector<const char*> argv;
+
+    rados_object() :
+    initialized(false),
+    argv(NULL)
+    {}
+};
+
 PHP_MINIT_FUNCTION(rados);
 PHP_MSHUTDOWN_FUNCTION(rados);
 PHP_MINFO_FUNCTION(rados);
@@ -40,8 +53,11 @@ PHP_METHOD(Rados, pool_delete);
 PHP_METHOD(Rados, pool_list);
 PHP_METHOD(Rados, get_pool_stats);
 PHP_METHOD(Rados, cluster_stat);
+PHP_METHOD(Rados, ioctx_create);
 
 extern zend_module_entry rados_module_entry;
 #define phpext_rados_ptr &rados_module_entry;
+
+extern const zend_function_entry php_rados_ioctx_methods[];
 
 #endif

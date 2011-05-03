@@ -17,24 +17,14 @@
 #endif
 
 #include "php_rados.h"
+#include "ioctx.h"
 
 zend_object_handlers rados_object_handlers;
+zend_object_handlers rados_ioctx_object_handlers;
 
 zend_class_entry *rados_rados_ce;
 zend_class_entry *rados_radosexception_ce;
-
-struct rados_object
-{
-    zend_object std;
-    Rados *rados;
-    bool initialized;
-    std::vector<const char*> argv;
-
-    rados_object() :
-        initialized(false),
-        argv(NULL)
-    {}
-};
+zend_class_entry *rados_radosioctx_ce;
 
 ZEND_BEGIN_ARG_INFO(arginfo_rados___construct, 0)
 ZEND_END_ARG_INFO()
@@ -85,6 +75,10 @@ ZEND_END_ARG_INFO()
 ZEND_BEGIN_ARG_INFO(arginfo_rados_cluster_stat, 0)
 ZEND_END_ARG_INFO()
 
+ZEND_BEGIN_ARG_INFO(arginfo_rados_ioctx_create, 0)
+    ZEND_ARG_INFO(0, name)
+ZEND_END_ARG_INFO()
+
 const zend_function_entry rados_rados_methods[] = {
     PHP_ME(Rados, __construct, NULL, ZEND_ACC_PUBLIC | ZEND_ACC_CTOR)
     PHP_ME(Rados, init, NULL, ZEND_ACC_PUBLIC)
@@ -99,6 +93,7 @@ const zend_function_entry rados_rados_methods[] = {
     PHP_ME(Rados, pool_list, NULL, ZEND_ACC_PUBLIC)
     PHP_ME(Rados, get_pool_stats, NULL, ZEND_ACC_PUBLIC)
     PHP_ME(Rados, cluster_stat, NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, ioctx_create, NULL, ZEND_ACC_PUBLIC)
     {NULL, NULL, NULL}
 };
 
@@ -408,6 +403,30 @@ PHP_METHOD(Rados, cluster_stat)
     add_assoc_string(return_value, "num_objects", uint642char(stats.num_objects), 1);
 }
 
+PHP_METHOD(Rados, ioctx_create)
+{
+    char *name = NULL;
+    int name_len = 0;
+    IoCtx pioctx;
+    struct radosioctx_object *riob;
+
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &name, &name_len) == FAILURE) {
+        RETURN_NULL();
+    }
+
+    rados_object *obj = (rados_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
+    if (obj->rados->ioctx_create(name, pioctx) < 0) {
+        RETURN_FALSE;
+    }
+
+    if (object_init_ex(return_value, rados_radosioctx_ce) != SUCCESS) {
+        RETURN_FALSE;
+    }
+
+    riob = (struct radosioctx_object *) zend_object_store_get_object(return_value TSRMLS_CC);
+    riob->ioctx = pioctx;
+}
+
 PHP_MINIT_FUNCTION(rados)
 {
     zend_class_entry ce;
@@ -422,6 +441,12 @@ PHP_MINIT_FUNCTION(rados)
     rados_radosexception_ce = zend_register_internal_class_ex(&ce, zend_exception_get_default(TSRMLS_C), NULL TSRMLS_CC);
     rados_radosexception_ce->ce_flags |= ZEND_ACC_FINAL;
     zend_declare_property_long(rados_radosexception_ce, "code", sizeof("code")-1, 0, ZEND_ACC_PUBLIC TSRMLS_CC);
+
+    INIT_CLASS_ENTRY(ce, "RadosIoCtx", php_rados_ioctx_methods);
+    rados_radosioctx_ce = zend_register_internal_class_ex(&ce, NULL, NULL TSRMLS_CC);
+    rados_radosioctx_ce->ce_flags |= ZEND_ACC_FINAL;
+    memcpy(&rados_ioctx_object_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
+    rados_ioctx_object_handlers.clone_obj = NULL;
 
     return SUCCESS;
 }
