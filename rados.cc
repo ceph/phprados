@@ -30,7 +30,6 @@ ZEND_BEGIN_ARG_INFO(arginfo_rados___construct, 0)
 ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_INFO(arginfo_rados_init, 0)
-    ZEND_ARG_INFO(0, id)
 ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_INFO(arginfo_rados_connect, 0)
