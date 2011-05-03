@@ -424,7 +424,7 @@ PHP_METHOD(Rados, ioctx_create)
     }
 
     riob = (struct radosioctx_object *) zend_object_store_get_object(return_value TSRMLS_CC);
-    riob->ioctx = pioctx;
+    riob->ioctx = &pioctx;
 }
 
 PHP_MINIT_FUNCTION(rados)
