@@ -26,6 +26,8 @@ zend_class_entry *rados_rados_ce;
 zend_class_entry *rados_radosexception_ce;
 zend_class_entry *rados_radosioctx_ce;
 
+int le_rados_ioctx;
+
 ZEND_BEGIN_ARG_INFO(arginfo_rados___construct, 0)
 ZEND_END_ARG_INFO()
 
@@ -427,6 +429,8 @@ PHP_METHOD(Rados, ioctx_create)
 
 PHP_MINIT_FUNCTION(rados)
 {
+    le_rados_ioctx = zend_register_list_destructors_ex(NULL, NULL, PHP_RADOS_IOCTX_RES_NAME, module_number);
+
     zend_class_entry ce;
 
     INIT_CLASS_ENTRY(ce, "Rados", rados_rados_methods);

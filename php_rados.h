@@ -17,8 +17,7 @@ extern "C" {
 #include <rados/librados.hpp>
 using namespace librados;
 
-#define PHP_RADOS_POOL_RES_NAME "RADOS Pool"
-#define PHP_RADOS_LISTCTX_RES_NAME "RADOS List CTX"
+#define PHP_RADOS_IOCTX_RES_NAME "RADOS IoCTX"
 /** FIXME Should correspond with librados! */
 #define PHP_RADOS_POOL_MAX_LENGTH 128
 #define PHP_RADOS_MAX_OBJECTS 1024
