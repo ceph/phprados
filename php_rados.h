@@ -17,6 +17,10 @@ extern "C" {
 #include <rados/librados.hpp>
 using namespace librados;
 
+typedef struct _php_rados_ioctx {
+    IoCtx ioctx;
+} php_rados_ioctx;
+
 #define PHP_RADOS_IOCTX_RES_NAME "RADOS IoCTX"
 /** FIXME Should correspond with librados! */
 #define PHP_RADOS_POOL_MAX_LENGTH 128

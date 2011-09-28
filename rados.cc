@@ -361,9 +361,9 @@ PHP_METHOD(Rados, get_pool_stats)
     }
 
     rados_object *obj = (rados_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
-    if(obj->rados->get_pool_stats(v, stats) < 0) {
+    /*if(obj->rados->get_pool_stats(v, stats) < 0) {
         RETURN_FALSE;
-    }
+    }*/
 
     array_init(return_value);
     for (std::map<std::string,pool_stat_t>::iterator i = stats.begin(); i != stats.end(); i++) {
@@ -407,6 +407,7 @@ PHP_METHOD(Rados, ioctx_create)
 {
     char *pool = NULL;
     int pool_len = 0;
+    php_rados_ioctx *ioctx_r;
     IoCtx pioctx;
     struct radosioctx_object *riob;
 
@@ -423,8 +424,9 @@ PHP_METHOD(Rados, ioctx_create)
         RETURN_FALSE;
     }
 
-    riob = (struct radosioctx_object *) zend_object_store_get_object(return_value TSRMLS_CC);
-    riob->ioctx = &pioctx;
+    ioctx_r = (php_rados_ioctx *)emalloc(sizeof(php_rados_ioctx));
+    ioctx_r->ioctx = pioctx;
+    ZEND_REGISTER_RESOURCE(return_value, ioctx_r, le_rados_ioctx);
 }
 
 PHP_MINIT_FUNCTION(rados)
