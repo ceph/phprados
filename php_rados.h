@@ -54,7 +54,6 @@ PHP_METHOD(Rados, pool_create);
 PHP_METHOD(Rados, pool_lookup);
 PHP_METHOD(Rados, pool_delete);
 PHP_METHOD(Rados, pool_list);
-PHP_METHOD(Rados, get_pool_stats);
 PHP_METHOD(Rados, cluster_stat);
 PHP_METHOD(Rados, ioctx_create);
 
