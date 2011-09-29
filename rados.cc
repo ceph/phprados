@@ -26,8 +26,6 @@ zend_class_entry *rados_rados_ce;
 zend_class_entry *rados_radosexception_ce;
 zend_class_entry *rados_radosioctx_ce;
 
-int le_rados_ioctx;
-
 ZEND_BEGIN_ARG_INFO(arginfo_rados___construct, 0)
 ZEND_END_ARG_INFO()
 
@@ -98,6 +96,14 @@ const zend_function_entry php_rados_radosexception_methods[] = {
     {NULL, NULL, NULL}
 };
 
+char *uint642char(uint64_t u) {
+    std::stringstream c_s;
+    c_s << u;
+    char *c_buf = (char *)emalloc(sizeof(c_s.str().c_str())+1);
+    strcpy(c_buf, c_s.str().c_str());
+    return c_buf;
+}
+
 void rados_free_storage(void *object TSRMLS_DC)
 {
     Rados *rados;
@@ -112,26 +118,6 @@ void rados_free_storage(void *object TSRMLS_DC)
     FREE_HASHTABLE(obj->std.properties);
 
     efree(obj);
-}
-
-namespace {
-
-    char *uint642char(uint64_t u)
-    {
-        std::stringstream c_s;
-        c_s << u;
-        char *c_buf = (char *)emalloc(sizeof(c_s.str().c_str()));
-        strcpy(c_buf, c_s.str().c_str());
-        return c_buf;
-    }
-
-    const char *cp_zval_strval(zval &z)
-    {
-        std::stringstream ss(Z_STRVAL(z));
-        char *buf = (char *)emalloc(ss.str().size() + 1);
-        strcpy(buf, ss.str().c_str());
-        return (const char *)buf;
-    }
 }
 
 zend_object_value rados_create_handler(zend_class_entry *type TSRMLS_DC)
@@ -149,6 +135,41 @@ zend_object_value rados_create_handler(zend_class_entry *type TSRMLS_DC)
 
     retval.handle = zend_objects_store_put(obj, NULL, rados_free_storage, NULL TSRMLS_CC);
     retval.handlers = &rados_object_handlers;
+
+    return retval;
+}
+
+void radosioctx_free_storage(void *object TSRMLS_DC)
+{
+    IoCtx *ioctx;
+    radosioctx_object *obj = (radosioctx_object *)object;
+    ioctx = obj->ioctx;
+    if (ioctx != NULL) {
+        ioctx->close();
+    }
+    delete obj->ioctx;
+
+    zend_hash_destroy(obj->std.properties);
+    FREE_HASHTABLE(obj->std.properties);
+
+    efree(obj);
+}
+
+zend_object_value radosioctx_create_handler(zend_class_entry *type TSRMLS_DC)
+{
+    zval *tmp;
+    zend_object_value retval;
+
+    radosioctx_object *obj = (radosioctx_object *)emalloc(sizeof(radosioctx_object));
+    memset(obj, 0, sizeof(radosioctx_object));
+    obj->std.ce = type;
+
+    ALLOC_HASHTABLE(obj->std.properties);
+    zend_hash_init(obj->std.properties, 0, NULL, ZVAL_PTR_DTOR, 0);
+    zend_hash_copy(obj->std.properties, &type->default_properties, (copy_ctor_func_t)zval_add_ref, (void *)&tmp, sizeof(zval *));
+
+    retval.handle = zend_objects_store_put(obj, NULL, radosioctx_free_storage, NULL TSRMLS_CC);
+    retval.handlers = &rados_ioctx_object_handlers;
 
     return retval;
 }
@@ -349,9 +370,7 @@ PHP_METHOD(Rados, ioctx_create)
 {
     char *pool = NULL;
     int pool_len = 0;
-    php_rados_ioctx *ioctx_r;
     IoCtx pioctx;
-    struct radosioctx_object *riob;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &pool, &pool_len) == FAILURE) {
         RETURN_NULL();
@@ -366,15 +385,13 @@ PHP_METHOD(Rados, ioctx_create)
         RETURN_FALSE;
     }
 
-    ioctx_r = (php_rados_ioctx *)emalloc(sizeof(php_rados_ioctx));
-    ioctx_r->ioctx = pioctx;
-    ZEND_REGISTER_RESOURCE(return_value, ioctx_r, le_rados_ioctx);
+    radosioctx_object *ioctx = (radosioctx_object *)zend_object_store_get_object(return_value TSRMLS_CC);
+    assert(ioctx != NULL);
+    ioctx->ioctx = &pioctx;
 }
 
 PHP_MINIT_FUNCTION(rados)
 {
-    le_rados_ioctx = zend_register_list_destructors_ex(NULL, NULL, PHP_RADOS_IOCTX_RES_NAME, module_number);
-
     zend_class_entry ce;
 
     INIT_CLASS_ENTRY(ce, "Rados", rados_rados_methods);
@@ -391,6 +408,7 @@ PHP_MINIT_FUNCTION(rados)
     INIT_CLASS_ENTRY(ce, "RadosIoCtx", php_rados_ioctx_methods);
     rados_radosioctx_ce = zend_register_internal_class_ex(&ce, NULL, NULL TSRMLS_CC);
     rados_radosioctx_ce->ce_flags |= ZEND_ACC_FINAL;
+    rados_radosioctx_ce->create_object = radosioctx_create_handler;
     memcpy(&rados_ioctx_object_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
     rados_ioctx_object_handlers.clone_obj = NULL;
 
