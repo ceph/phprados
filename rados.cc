@@ -68,6 +68,9 @@ ZEND_END_ARG_INFO()
 ZEND_BEGIN_ARG_INFO(arginfo_rados_pool_list, 0)
 ZEND_END_ARG_INFO()
 
+ZEND_BEGIN_ARG_INFO(arginfo_rados_get_pool_stats, 0)
+ZEND_END_ARG_INFO()
+
 ZEND_BEGIN_ARG_INFO(arginfo_rados_cluster_stat, 0)
 ZEND_END_ARG_INFO()
 
@@ -87,6 +90,7 @@ const zend_function_entry rados_rados_methods[] = {
     PHP_ME(Rados, pool_lookup, arginfo_rados_pool_lookup, ZEND_ACC_PUBLIC)
     PHP_ME(Rados, pool_delete, arginfo_rados_pool_delete, ZEND_ACC_PUBLIC)
     PHP_ME(Rados, pool_list, arginfo_rados_pool_list, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados, get_pool_stats, arginfo_rados_get_pool_stats, ZEND_ACC_PUBLIC)
     PHP_ME(Rados, cluster_stat, arginfo_rados_cluster_stat, ZEND_ACC_PUBLIC)
     PHP_ME(Rados, ioctx_create, arginfo_rados_ioctx_create, ZEND_ACC_PUBLIC)
     {NULL, NULL, NULL}
@@ -347,6 +351,64 @@ PHP_METHOD(Rados, pool_list)
     array_init(return_value);
     for (std::list<std::string>::iterator i = pools.begin(); i != pools.end(); i++) {
         add_next_index_string(return_value, i->c_str(), 1);
+    }
+}
+
+PHP_METHOD(Rados, get_pool_stats)
+{
+    std::list<std::string> v;
+    std::map<std::string, stats_map> stats;
+    zval *pools;
+
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "z", &pools) == FAILURE) {
+        RETURN_NULL();
+    }
+
+    if (Z_TYPE_P(pools) == IS_STRING) {
+        v.push_back(Z_STRVAL_P(pools));
+    } else if (Z_TYPE_P(pools) == IS_ARRAY) {
+        HashTable *arr_hash;
+        HashPosition hash_pos;
+        zval **arr_value;
+        arr_hash = Z_ARRVAL_P(pools);
+
+        for (zend_hash_internal_pointer_reset_ex(arr_hash, &hash_pos); zend_hash_get_current_data_ex(arr_hash, (void**) &arr_value, &hash_pos) == SUCCESS; zend_hash_move_forward_ex(arr_hash, &hash_pos)) {
+            if (Z_TYPE_PP(arr_value) == IS_STRING) {
+                v.push_back(Z_STRVAL_PP(arr_value));
+            }
+        }
+    } else {
+        RETURN_FALSE;
+    }
+
+    rados_object *obj = (rados_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
+    if(obj->rados->get_pool_stats(v, stats) < 0) {
+        RETURN_FALSE;
+    }
+
+    array_init(return_value);
+    for (std::map<std::string, stats_map>::iterator i = stats.begin(); i != stats.end(); i++) {
+        zval *pool_stats;
+        ALLOC_INIT_ZVAL(pool_stats);
+        array_init(pool_stats);
+
+        stats_map& m = i->second;
+        for (stats_map::iterator j = m.begin(); j != m.end(); j++) {
+            pool_stat_t& s = j->second;
+            add_assoc_string(pool_stats, "num_bytes", uint642char(s.num_bytes), 1);
+            add_assoc_string(pool_stats, "num_kb", uint642char(s.num_kb), 1);
+            add_assoc_string(pool_stats, "num_objects", uint642char(s.num_objects), 1);
+            add_assoc_string(pool_stats, "num_object_clones", uint642char(s.num_object_clones), 1);
+            add_assoc_string(pool_stats, "num_object_copies", uint642char(s.num_object_copies), 1);
+            add_assoc_string(pool_stats, "num_objects_missing_on_primary", uint642char(s.num_objects_missing_on_primary), 1);
+            add_assoc_string(pool_stats, "num_objects_degraded", uint642char(s.num_objects_degraded), 1);
+            add_assoc_string(pool_stats, "num_rd", uint642char(s.num_rd), 1);
+            add_assoc_string(pool_stats, "num_rd_kb", uint642char(s.num_rd_kb), 1);
+            add_assoc_string(pool_stats, "num_wr", uint642char(s.num_wr), 1);
+            add_assoc_string(pool_stats, "num_wr_kb", uint642char(s.num_wr_kb), 1);
+        }
+
+        add_assoc_zval(return_value, i->first.c_str(), pool_stats);
     }
 }
 
