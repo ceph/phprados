@@ -110,6 +110,7 @@ const zend_function_entry rados_functions[] = {
     PHP_FE(rados_ioctx_create, NULL)
     PHP_FE(rados_ioctx_destroy, NULL)
     PHP_FE(rados_ioctx_pool_stat, NULL)
+    PHP_FE(rados_pool_lookup, NULL)
     {NULL, NULL, NULL}
 };
 
@@ -669,6 +670,26 @@ PHP_FUNCTION(rados_ioctx_pool_stat)
     add_assoc_string(return_value, "num_rd_kb", uint642char(stats.num_rd_kb), 1);
     add_assoc_string(return_value, "num_wr", uint642char(stats.num_wr), 1);
     add_assoc_string(return_value, "num_wr_kb", uint642char(stats.num_wr_kb), 1);
+}
+
+PHP_FUNCTION(rados_pool_lookup)
+{
+    php_rados_cluster *cluster_r;
+    zval *zcluster;
+    char *pool = NULL;
+    int pool_len = 0;
+
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &zcluster, &pool, &pool_len) == FAILURE) {
+        RETURN_NULL();
+    }
+
+    ZEND_FETCH_RESOURCE(cluster_r, php_rados_cluster*, &zcluster, -1, PHP_RADOS_CLUSTER_RES_NAME, le_rados_cluster);
+
+    if (rados_pool_lookup(cluster_r->cluster, pool) < 0) {
+        RETURN_FALSE;
+    }
+
+    RETURN_TRUE;
 }
 
 PHP_MINIT_FUNCTION(rados)
