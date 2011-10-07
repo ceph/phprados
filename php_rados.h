@@ -9,6 +9,7 @@ extern "C" {
 #include "php_ini.h"
 #include "zend_exceptions.h"
 #include "ext/standard/info.h"
+#include <rados/librados.h>
 #ifdef ZTS
 #include "TSRM.h"
 #endif
@@ -20,6 +21,7 @@ using namespace librados;
 /** FIXME Should correspond with librados! */
 #define PHP_RADOS_POOL_MAX_LENGTH 128
 #define PHP_RADOS_MAX_OBJECTS 1024
+#define PHP_RADOS_CLUSTER_RES_NAME "RADOS Cluster"
 
 struct rados_object
 {
@@ -33,6 +35,10 @@ struct rados_object
     argv(NULL)
     {}
 };
+
+typedef struct _php_rados_cluster {
+    rados_t cluster;
+} php_rados_cluster;
 
 PHP_MINIT_FUNCTION(rados);
 PHP_MSHUTDOWN_FUNCTION(rados);
@@ -52,6 +58,8 @@ PHP_METHOD(Rados, pool_list);
 PHP_METHOD(Rados, get_pool_stats);
 PHP_METHOD(Rados, cluster_stat);
 PHP_METHOD(Rados, ioctx_create);
+
+PHP_FUNCTION(rados_create);
 
 extern zend_module_entry rados_module_entry;
 #define phpext_rados_ptr &rados_module_entry;

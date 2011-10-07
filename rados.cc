@@ -26,6 +26,8 @@ zend_class_entry *rados_rados_ce;
 zend_class_entry *rados_radosexception_ce;
 zend_class_entry *rados_radosioctx_ce;
 
+int le_rados_cluster;
+
 ZEND_BEGIN_ARG_INFO(arginfo_rados___construct, 0)
 ZEND_END_ARG_INFO()
 
@@ -95,6 +97,12 @@ const zend_function_entry rados_rados_methods[] = {
     PHP_ME(Rados, ioctx_create, arginfo_rados_ioctx_create, ZEND_ACC_PUBLIC)
     {NULL, NULL, NULL}
 };
+
+const zend_function_entry rados_functions[] = {
+    PHP_FE(rados_create, NULL)
+    {NULL, NULL, NULL}
+};
+
 
 const zend_function_entry php_rados_radosexception_methods[] = {
     {NULL, NULL, NULL}
@@ -452,8 +460,47 @@ PHP_METHOD(Rados, ioctx_create)
     ioctx->ioctx = &pioctx;
 }
 
+/* librados C API */
+PHP_FUNCTION(rados_create)
+{
+    php_rados_cluster *cluster_r;
+    rados_t cluster;
+    char *id = NULL;
+    int id_len = 0;
+
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|s", &id, &id_len) == FAILURE) {
+        RETURN_NULL();
+    }
+
+    if (id == NULL) {
+        id = "someid";
+    }
+
+    if (rados_create(&cluster, id) < 0) {
+        RETURN_FALSE;
+    }
+
+    cluster_r = (php_rados_cluster *)emalloc(sizeof(php_rados_cluster));
+    cluster_r->cluster = cluster;
+    ZEND_REGISTER_RESOURCE(return_value, cluster_r, le_rados_cluster);
+}
+
+PHP_FUNCTION(rados_shutdown)
+{
+    php_rados_cluster *cluster_r;
+    zval *zpool;
+
+    ZEND_FETCH_RESOURCE(cluster_r, php_rados_cluster*, &zpool, -1, PHP_RADOS_CLUSTER_RES_NAME, le_rados_cluster);
+
+    rados_shutdown(cluster_r->cluster);
+
+    RETURN_TRUE;
+}
+
 PHP_MINIT_FUNCTION(rados)
 {
+    le_rados_cluster = zend_register_list_destructors_ex(NULL, NULL, PHP_RADOS_CLUSTER_RES_NAME, module_number);
+
     zend_class_entry ce;
 
     INIT_CLASS_ENTRY(ce, "Rados", rados_rados_methods);
@@ -499,7 +546,7 @@ PHP_MINFO_FUNCTION(rados)
 zend_module_entry rados_module_entry = {
     STANDARD_MODULE_HEADER,
     PHP_RADOS_EXTNAME,
-    NULL,                  /* Functions */
+    rados_functions,       /* Functions */
     PHP_MINIT(rados),      /* MINIT */
     NULL,                  /* MSHUTDOWN */
     NULL,                  /* RINIT */
