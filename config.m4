@@ -3,9 +3,9 @@ PHP_ARG_ENABLE(rados, [Enable the rados extension],
 
 if test $PHP_RADOS != "no"; then
 
-    AC_MSG_CHECKING([for RADOS files (librados.hpp)])
+    AC_MSG_CHECKING([for RADOS files (librados.h)])
     for i in $PHP_RADOS /usr/local /usr; do
-        if test -r $i/include/rados/librados.hpp; then
+        if test -r $i/include/rados/librados.h; then
             RADOS_DIR=$i
             AC_MSG_RESULT(found in $i)
             break
@@ -52,7 +52,6 @@ if test $PHP_RADOS != "no"; then
         PHP_ADD_LIBRARY_WITH_PATH(crypto, $CRYPTO_DIR/$PHP_LIBDIR, RADOS_SHARED_LIBADD)
     fi
 
-    PHP_REQUIRE_CXX()
     PHP_SUBST(RADOS_SHARED_LIBADD)
-    PHP_NEW_EXTENSION(rados, [rados.cc ioctx.cc], $ext_shared)
+    PHP_NEW_EXTENSION(rados, [rados.c], $ext_shared)
 fi
