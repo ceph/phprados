@@ -67,6 +67,11 @@ ZEND_BEGIN_ARG_INFO(arginfo_rados_pool_create, 0)
 	ZEND_ARG_INFO(0, options)
 ZEND_END_ARG_INFO()
 
+ZEND_BEGIN_ARG_INFO(arginfo_rados_pool_delete, 0)
+	ZEND_ARG_INFO(0, cluster)
+	ZEND_ARG_INFO(0, pool)
+ZEND_END_ARG_INFO()
+
 const zend_function_entry rados_functions[] = {
 	PHP_FE(rados_create, arginfo_rados_create)
 	PHP_FE(rados_shutdown, arginfo_rados_shutdown)
@@ -78,6 +83,7 @@ const zend_function_entry rados_functions[] = {
 	PHP_FE(rados_ioctx_destroy, arginfo_rados_ioctx_destroy)
 	PHP_FE(rados_pool_lookup, arginfo_rados_pool_lookup)
 	PHP_FE(rados_pool_create, arginfo_rados_pool_create)
+	PHP_FE(rados_pool_delete, arginfo_rados_pool_delete)
 	{NULL, NULL, NULL}
 };
 
@@ -310,6 +316,26 @@ PHP_FUNCTION(rados_pool_create)
 	}
 
 	if (r < 0) {
+		RETURN_FALSE;
+	}
+
+	RETURN_TRUE;
+}
+
+PHP_FUNCTION(rados_pool_delete)
+{
+    php_rados_cluster *cluster_r;
+    zval *zcluster;
+    char *pool = NULL;
+    int pool_len = 0;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &zcluster, &pool, &pool_len) == FAILURE) {
+		RETURN_NULL();
+	}
+
+	ZEND_FETCH_RESOURCE(cluster_r, php_rados_cluster*, &zcluster, -1, PHP_RADOS_CLUSTER_RES_NAME, le_rados_cluster);
+
+	if (rados_pool_delete(cluster_r->cluster, pool) < 0) {
 		RETURN_FALSE;
 	}
 
