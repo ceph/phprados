@@ -93,10 +93,6 @@ PHP_FUNCTION(rados_create)
         RETURN_NULL();
     }
 
-    if (id == NULL) {
-        id = "someid";
-    }
-
     if (rados_create(&cluster, id) < 0) {
         RETURN_FALSE;
     }
@@ -261,22 +257,62 @@ PHP_FUNCTION(rados_pool_lookup)
 
 PHP_FUNCTION(rados_pool_create)
 {
-    php_rados_cluster *cluster_r;
-    zval *zcluster;
-    zval *options;
-    char *pool = NULL;
-    int pool_len = 0;
+	zval *zcluster;
+	zval *options;
+	zval **entry;
+	php_rados_cluster *cluster_r;
+	char *pool = NULL;
+	char *key;
+	uint key_len;
+	int auid = NULL;
+	int crushrule = NULL;
+	int pool_len = 0;
+	long option;
+	HashPosition pos;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs|r", &zcluster, &pool, &pool_len, &options) == FAILURE) {
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs|a", &zcluster, &pool, &pool_len, &options) == FAILURE) {
         RETURN_NULL();
     }
+    
+    if (Z_TYPE_P(options) == IS_ARRAY) {
+		zend_hash_internal_pointer_reset_ex(Z_ARRVAL_P(options), &pos);
+		while (zend_hash_get_current_data_ex(Z_ARRVAL_P(options), (void **)&entry, &pos) == SUCCESS) {
+			if (zend_hash_get_current_key_ex(Z_ARRVAL_P(options), &key, &key_len, &option, 0, &pos) != HASH_KEY_IS_STRING) {
+				php_error_docref(NULL TSRMLS_CC, E_WARNING, "Array keys must be strings");
+				RETURN_NULL();
+			}
 
-    ZEND_FETCH_RESOURCE(cluster_r, php_rados_cluster*, &zcluster, -1, PHP_RADOS_CLUSTER_RES_NAME, le_rados_cluster);
-	
-	if (rados_pool_create(cluster_r->cluster, pool) < 0) {
-			RETURN_FALSE;
+			if (Z_TYPE_PP(entry) == IS_LONG) {
+				if (strcmp(key, "auid") == 0) {
+					auid = Z_LVAL_PP(entry);
+				}
+
+				if (strcmp(key, "crushrule") == 0) {
+					crushrule = Z_LVAL_PP(entry);
+				}
+			}
+
+			zend_hash_move_forward_ex(Z_ARRVAL_P(options), &pos);
+		}
 	}
-	
+
+	ZEND_FETCH_RESOURCE(cluster_r, php_rados_cluster*, &zcluster, -1, PHP_RADOS_CLUSTER_RES_NAME, le_rados_cluster);
+
+	int r;
+	if ((auid != NULL) && (crushrule != NULL)) {
+		r = rados_pool_create_with_all(cluster_r->cluster, pool, auid, crushrule);
+	} else if (auid != NULL) {
+		r = rados_pool_create_with_auid(cluster_r->cluster, pool, auid);
+	} else if (crushrule != NULL) {
+		r = rados_pool_create_with_crush_rule(cluster_r->cluster, pool, crushrule);
+	} else  {
+		r = rados_pool_create(cluster_r->cluster, pool);
+	}
+
+	if (r < 0) {
+		RETURN_FALSE;
+	}
+
 	RETURN_TRUE;
 }
 
