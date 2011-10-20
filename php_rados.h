@@ -48,6 +48,9 @@ PHP_FUNCTION(rados_write);
 PHP_FUNCTION(rados_write_full);
 PHP_FUNCTION(rados_read);
 PHP_FUNCTION(rados_remove);
+PHP_FUNCTION(rados_trunc);
+PHP_FUNCTION(rados_append);
+PHP_FUNCTION(rados_clone_range);
 
 extern zend_module_entry rados_module_entry;
 #define phpext_rados_ptr &rados_module_entry;
