@@ -44,6 +44,10 @@ PHP_FUNCTION(rados_pool_create);
 PHP_FUNCTION(rados_pool_delete);
 PHP_FUNCTION(rados_ioctx_pool_set_auid);
 PHP_FUNCTION(rados_ioctx_pool_get_auid);
+PHP_FUNCTION(rados_write);
+PHP_FUNCTION(rados_write_full);
+PHP_FUNCTION(rados_read);
+PHP_FUNCTION(rados_remove);
 
 extern zend_module_entry rados_module_entry;
 #define phpext_rados_ptr &rados_module_entry;
