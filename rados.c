@@ -465,37 +465,31 @@ PHP_FUNCTION(rados_write_full) {
 PHP_FUNCTION(rados_read) {
 	php_rados_ioctx *ioctx_r;
 	char *oid=NULL;
-	char buffer;
 	int oid_len;
-	size_t buffer_len;
+	size_t size;
 	zval *zioctx;
 	uint64_t offset = 0;
 	
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rsl|l", &zioctx, &oid, &oid_len, &buffer_len, &offset) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rsl|l", &zioctx, &oid, &oid_len, &size, &offset) == FAILURE) {
 		RETURN_FALSE;
 	}
+	
+	char buffer[size];
 	
 	ZEND_FETCH_RESOURCE(ioctx_r, php_rados_ioctx*, &zioctx, -1, PHP_RADOS_IOCTX_RES_NAME, le_rados_ioctx);
 
-	//buffer = (char *) emalloc(buffer_len);
-	
-	if (rados_read(ioctx_r->io, oid, &buffer, sizeof(buffer), offset) < 0) {
+	if (rados_read(ioctx_r->io, oid, buffer, size, offset) < 0) {
 		RETURN_FALSE;
 	}
 	
-	RETURN_STRINGL(buffer, buffer_len, 1);
-	
-	//efree(buffer);
+	RETURN_STRINGL(buffer, size, 1);
 }
 
 PHP_FUNCTION(rados_remove) {
 	php_rados_ioctx *ioctx_r;
 	char *oid=NULL;
-	char *buffer=NULL;
 	int oid_len;
-	size_t buffer_len;
 	zval *zioctx;
-	uint64_t offset = 0;
 	
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &zioctx, &oid, &oid_len) == FAILURE) {
 		RETURN_FALSE;
