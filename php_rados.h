@@ -54,6 +54,7 @@ PHP_FUNCTION(rados_clone_range);
 PHP_FUNCTION(rados_getxattr);
 PHP_FUNCTION(rados_setxattr);
 PHP_FUNCTION(rados_rmxattr);
+PHP_FUNCTION(rados_stat);
 
 extern zend_module_entry rados_module_entry;
 #define phpext_rados_ptr &rados_module_entry;
