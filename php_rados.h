@@ -55,6 +55,7 @@ PHP_FUNCTION(rados_getxattr);
 PHP_FUNCTION(rados_setxattr);
 PHP_FUNCTION(rados_rmxattr);
 PHP_FUNCTION(rados_stat);
+PHP_FUNCTION(rados_get_last_version);
 
 extern zend_module_entry rados_module_entry;
 #define phpext_rados_ptr &rados_module_entry;
