@@ -700,8 +700,8 @@ PHP_FUNCTION(rados_stat) {
 	php_rados_ioctx *ioctx_r;
 	char *oid=NULL;
 	int oid_len;
-	uint64_t *psize;
-	time_t *pmtime;
+	uint64_t psize;
+	time_t pmtime;
 	zval *zioctx;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &zioctx, &oid, &oid_len) == FAILURE) {
