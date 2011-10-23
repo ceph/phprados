@@ -155,6 +155,11 @@ ZEND_BEGIN_ARG_INFO(arginfo_rados_get_last_version, 0)
 	ZEND_ARG_INFO(0, ioctx)
 ZEND_END_ARG_INFO()
 
+ZEND_BEGIN_ARG_INFO(arginfo_rados_getxattrs, 0)
+	ZEND_ARG_INFO(0, ioctx)
+	ZEND_ARG_INFO(0, oid)
+ZEND_END_ARG_INFO()
+
 const zend_function_entry rados_functions[] = {
 	PHP_FE(rados_create, arginfo_rados_create)
 	PHP_FE(rados_shutdown, arginfo_rados_shutdown)
@@ -181,6 +186,7 @@ const zend_function_entry rados_functions[] = {
 	PHP_FE(rados_rmxattr, arginfo_rados_rmxattr)
 	PHP_FE(rados_stat, arginfo_rados_stat)
 	PHP_FE(rados_get_last_version, arginfo_rados_get_last_version)
+	PHP_FE(rados_getxattrs, arginfo_rados_getxattrs)
 	{NULL, NULL, NULL}
 };
 
@@ -731,6 +737,36 @@ PHP_FUNCTION(rados_get_last_version) {
 	ZEND_FETCH_RESOURCE(ioctx_r, php_rados_ioctx*, &zioctx, -1, PHP_RADOS_IOCTX_RES_NAME, le_rados_ioctx);
 
 	RETURN_LONG(rados_get_last_version(ioctx_r->io));
+}
+
+PHP_FUNCTION(rados_getxattrs) {
+	php_rados_ioctx *ioctx_r;
+	char *oid=NULL;
+	int oid_len;
+	zval *zioctx;
+	rados_xattrs_iter_t iter;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &zioctx, &oid, &oid_len) == FAILURE) {
+		RETURN_FALSE;
+	}
+
+	ZEND_FETCH_RESOURCE(ioctx_r, php_rados_ioctx*, &zioctx, -1, PHP_RADOS_IOCTX_RES_NAME, le_rados_ioctx);
+
+	array_init(return_value);
+
+	rados_getxattrs(ioctx_r->io, oid, &iter);
+	while (1) {
+		const char *name;
+		const char *val;
+		size_t len;
+
+		rados_getxattrs_next(iter, &name, &val, &len);
+		if (name == NULL) {
+			break;
+		}
+		add_assoc_string(return_value, name, val, 1);
+	}
+	rados_getxattrs_end(iter);
 }
 
 PHP_MINIT_FUNCTION(rados)
