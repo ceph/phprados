@@ -788,13 +788,8 @@ PHP_FUNCTION(rados_objects_list) {
 	array_init(return_value);
 
 	rados_objects_list_open(ioctx_r->io, &ctx);
-	while (1) {
-		const char *oid;
-
-		rados_objects_list_next(ctx, &oid);
-		if (oid == -ENOENT) {
-			break;
-		}
+	const char *oid;
+	while (rados_objects_list_next(ctx, &oid) == 0) {
 		add_next_index_string(return_value, oid, 1);
 	}
 	rados_objects_list_close(ctx);
