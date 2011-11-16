@@ -58,6 +58,8 @@ PHP_FUNCTION(rados_stat);
 PHP_FUNCTION(rados_get_last_version);
 PHP_FUNCTION(rados_getxattrs);
 PHP_FUNCTION(rados_objects_list);
+PHP_FUNCTION(rados_ioctx_snap_create);
+PHP_FUNCTION(rados_ioctx_snap_remove);
 
 extern zend_module_entry rados_module_entry;
 #define phpext_rados_ptr &rados_module_entry;

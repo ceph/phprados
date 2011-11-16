@@ -164,6 +164,16 @@ ZEND_BEGIN_ARG_INFO(arginfo_rados_objects_list, 0)
 	ZEND_ARG_INFO(0, ioctx)
 ZEND_END_ARG_INFO()
 
+ZEND_BEGIN_ARG_INFO(arginfo_rados_ioctx_snap_create, 0)
+	ZEND_ARG_INFO(0, ioctx)
+	ZEND_ARG_INFO(0, snapname)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO(arginfo_rados_ioctx_snap_remove, 0)
+	ZEND_ARG_INFO(0, ioctx)
+	ZEND_ARG_INFO(0, snapname)
+ZEND_END_ARG_INFO()
+
 const zend_function_entry rados_functions[] = {
 	PHP_FE(rados_create, arginfo_rados_create)
 	PHP_FE(rados_shutdown, arginfo_rados_shutdown)
@@ -192,6 +202,8 @@ const zend_function_entry rados_functions[] = {
 	PHP_FE(rados_get_last_version, arginfo_rados_get_last_version)
 	PHP_FE(rados_getxattrs, arginfo_rados_getxattrs)
 	PHP_FE(rados_objects_list, arginfo_rados_objects_list)
+	PHP_FE(rados_ioctx_snap_create, arginfo_rados_ioctx_snap_create)
+	PHP_FE(rados_ioctx_snap_remove, arginfo_rados_ioctx_snap_remove)
 	{NULL, NULL, NULL}
 };
 
@@ -793,6 +805,46 @@ PHP_FUNCTION(rados_objects_list) {
 		add_next_index_string(return_value, oid, 1);
 	}
 	rados_objects_list_close(ctx);
+}
+
+PHP_FUNCTION(rados_ioctx_snap_create) {
+	php_rados_ioctx *ioctx_r;
+	zval *zioctx;
+	rados_list_ctx_t ctx;
+	char *snapname=NULL;
+	int snapname_len;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &zioctx, &snapname, &snapname_len) == FAILURE) {
+		RETURN_FALSE;
+	}
+	
+	ZEND_FETCH_RESOURCE(ioctx_r, php_rados_ioctx*, &zioctx, -1, PHP_RADOS_IOCTX_RES_NAME, le_rados_ioctx);
+	
+	if (rados_ioctx_snap_create(ioctx_r->io, snapname) < 0) {
+		RETURN_FALSE;
+	}
+	
+	RETURN_TRUE;
+}
+
+PHP_FUNCTION(rados_ioctx_snap_remove) {
+	php_rados_ioctx *ioctx_r;
+	zval *zioctx;
+	rados_list_ctx_t ctx;
+	char *snapname=NULL;
+	int snapname_len;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &zioctx, &snapname, &snapname_len) == FAILURE) {
+		RETURN_FALSE;
+	}
+	
+	ZEND_FETCH_RESOURCE(ioctx_r, php_rados_ioctx*, &zioctx, -1, PHP_RADOS_IOCTX_RES_NAME, le_rados_ioctx);
+	
+	if (rados_ioctx_snap_remove(ioctx_r->io, snapname) < 0) {
+		RETURN_FALSE;
+	}
+	
+	RETURN_TRUE;
 }
 
 PHP_MINIT_FUNCTION(rados)
