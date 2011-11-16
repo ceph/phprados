@@ -13,9 +13,6 @@
 #include "TSRM.h"
 #endif
 
-/** FIXME Should correspond with librados! */
-#define PHP_RADOS_POOL_MAX_LENGTH 128
-#define PHP_RADOS_MAX_OBJECTS 1024
 #define PHP_RADOS_SNAP_NAME_MAX_LENGTH 64
 #define PHP_RADOS_SNAP_MAX_NUM 256
 #define PHP_RADOS_CLUSTER_RES_NAME "RADOS Cluster"
