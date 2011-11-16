@@ -16,6 +16,8 @@
 /** FIXME Should correspond with librados! */
 #define PHP_RADOS_POOL_MAX_LENGTH 128
 #define PHP_RADOS_MAX_OBJECTS 1024
+#define PHP_RADOS_SNAP_NAME_MAX_LENGTH 64
+#define PHP_RADOS_SNAP_MAX_NUM 256
 #define PHP_RADOS_CLUSTER_RES_NAME "RADOS Cluster"
 #define PHP_RADOS_IOCTX_RES_NAME "RADOS IOCtx"
 
@@ -60,6 +62,11 @@ PHP_FUNCTION(rados_getxattrs);
 PHP_FUNCTION(rados_objects_list);
 PHP_FUNCTION(rados_ioctx_snap_create);
 PHP_FUNCTION(rados_ioctx_snap_remove);
+PHP_FUNCTION(rados_rollback);
+PHP_FUNCTION(rados_ioctx_snap_list);
+PHP_FUNCTION(rados_ioctx_snap_lookup);
+PHP_FUNCTION(rados_ioctx_snap_get_name);
+PHP_FUNCTION(rados_ioctx_snap_get_stamp);
 
 extern zend_module_entry rados_module_entry;
 #define phpext_rados_ptr &rados_module_entry;

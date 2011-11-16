@@ -174,6 +174,32 @@ ZEND_BEGIN_ARG_INFO(arginfo_rados_ioctx_snap_remove, 0)
 	ZEND_ARG_INFO(0, snapname)
 ZEND_END_ARG_INFO()
 
+ZEND_BEGIN_ARG_INFO(arginfo_rados_rollback, 0)
+	ZEND_ARG_INFO(0, ioctx)
+	ZEND_ARG_INFO(0, oid)
+	ZEND_ARG_INFO(0, snapname)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO(arginfo_rados_ioctx_snap_list, 0)
+	ZEND_ARG_INFO(0, ioctx)
+	ZEND_ARG_INFO(0, maxsnaps)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO(arginfo_rados_ioctx_snap_lookup, 0)
+	ZEND_ARG_INFO(0, ioctx)
+	ZEND_ARG_INFO(0, snapid)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO(arginfo_rados_ioctx_snap_get_name, 0)
+	ZEND_ARG_INFO(0, ioctx)
+	ZEND_ARG_INFO(0, snapid)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO(arginfo_rados_ioctx_snap_get_stamp, 0)
+	ZEND_ARG_INFO(0, ioctx)
+	ZEND_ARG_INFO(0, snapid)
+ZEND_END_ARG_INFO()
+
 const zend_function_entry rados_functions[] = {
 	PHP_FE(rados_create, arginfo_rados_create)
 	PHP_FE(rados_shutdown, arginfo_rados_shutdown)
@@ -204,6 +230,11 @@ const zend_function_entry rados_functions[] = {
 	PHP_FE(rados_objects_list, arginfo_rados_objects_list)
 	PHP_FE(rados_ioctx_snap_create, arginfo_rados_ioctx_snap_create)
 	PHP_FE(rados_ioctx_snap_remove, arginfo_rados_ioctx_snap_remove)
+	PHP_FE(rados_rollback, arginfo_rados_rollback)
+	PHP_FE(rados_ioctx_snap_list, arginfo_rados_ioctx_snap_list)
+	PHP_FE(rados_ioctx_snap_lookup, arginfo_rados_ioctx_snap_lookup)
+	PHP_FE(rados_ioctx_snap_get_name, arginfo_rados_ioctx_snap_get_name)
+	PHP_FE(rados_ioctx_snap_get_stamp, arginfo_rados_ioctx_snap_get_stamp)
 	{NULL, NULL, NULL}
 };
 
@@ -810,11 +841,15 @@ PHP_FUNCTION(rados_objects_list) {
 PHP_FUNCTION(rados_ioctx_snap_create) {
 	php_rados_ioctx *ioctx_r;
 	zval *zioctx;
-	rados_list_ctx_t ctx;
 	char *snapname=NULL;
 	int snapname_len;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &zioctx, &snapname, &snapname_len) == FAILURE) {
+		RETURN_FALSE;
+	}
+	
+	if (snapname_len > PHP_RADOS_SNAP_NAME_MAX_LENGTH) {
+		php_error_docref(NULL TSRMLS_CC, E_ERROR, "The snapshot name (%s) is too long!", snapname);
 		RETURN_FALSE;
 	}
 	
@@ -830,7 +865,6 @@ PHP_FUNCTION(rados_ioctx_snap_create) {
 PHP_FUNCTION(rados_ioctx_snap_remove) {
 	php_rados_ioctx *ioctx_r;
 	zval *zioctx;
-	rados_list_ctx_t ctx;
 	char *snapname=NULL;
 	int snapname_len;
 
@@ -847,6 +881,117 @@ PHP_FUNCTION(rados_ioctx_snap_remove) {
 	RETURN_TRUE;
 }
 
+PHP_FUNCTION(rados_rollback) {
+	php_rados_ioctx *ioctx_r;
+	zval *zioctx;
+	char *snapname=NULL;
+	int snapname_len;
+	char *oid=NULL;
+	int oid_len;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rss", &zioctx, &oid, &oid_len, &snapname, &snapname_len) == FAILURE) {
+		RETURN_FALSE;
+	}
+	
+	ZEND_FETCH_RESOURCE(ioctx_r, php_rados_ioctx*, &zioctx, -1, PHP_RADOS_IOCTX_RES_NAME, le_rados_ioctx);
+	
+	if (rados_rollback(ioctx_r->io, oid, snapname) < 0) {
+		RETURN_FALSE;
+	}
+	
+	RETURN_TRUE;
+}
+
+PHP_FUNCTION(rados_ioctx_snap_list) {
+	php_rados_ioctx *ioctx_r;
+	zval *zioctx;
+	rados_list_ctx_t ctx;
+	int maxsnaps = PHP_RADOS_SNAP_MAX_NUM;
+	int i, r;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r|l", &zioctx, &maxsnaps) == FAILURE) {
+		RETURN_FALSE;
+	}
+	
+	ZEND_FETCH_RESOURCE(ioctx_r, php_rados_ioctx*, &zioctx, -1, PHP_RADOS_IOCTX_RES_NAME, le_rados_ioctx);
+
+	if (maxsnaps > PHP_RADOS_SNAP_MAX_NUM) {
+		php_error_docref(NULL TSRMLS_CC, E_ERROR, "The maximum number of snapshots per pool is %d!", PHP_RADOS_SNAP_MAX_NUM);
+		RETURN_FALSE;
+	}
+
+	rados_snap_t snaps[maxsnaps];
+	
+	r = rados_ioctx_snap_list(ioctx_r->io, snaps, maxsnaps);
+	if (r < 0) {
+		RETURN_FALSE;
+	}
+
+	array_init(return_value);
+	for (i = 0; i < r; i++) {
+		add_next_index_long(return_value, (long)snaps[i]);
+	}
+}
+
+
+PHP_FUNCTION(rados_ioctx_snap_lookup) {
+	php_rados_ioctx *ioctx_r;
+	zval *zioctx;
+	char *snapname=NULL;
+	int snapname_len;
+	rados_snap_t snapid;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &zioctx, &snapname, &snapname_len) == FAILURE) {
+		RETURN_FALSE;
+	}
+	
+	ZEND_FETCH_RESOURCE(ioctx_r, php_rados_ioctx*, &zioctx, -1, PHP_RADOS_IOCTX_RES_NAME, le_rados_ioctx);
+	
+	if (rados_ioctx_snap_lookup(ioctx_r->io, snapname, &snapid) < 0) {
+		RETURN_FALSE;
+	}
+	
+	RETURN_LONG(snapid);
+}
+
+PHP_FUNCTION(rados_ioctx_snap_get_name) {
+	php_rados_ioctx *ioctx_r;
+	zval *zioctx;
+	char snapname[PHP_RADOS_SNAP_NAME_MAX_LENGTH];
+	long snapid;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &zioctx, &snapid) == FAILURE) {
+		RETURN_FALSE;
+	}
+	
+	ZEND_FETCH_RESOURCE(ioctx_r, php_rados_ioctx*, &zioctx, -1, PHP_RADOS_IOCTX_RES_NAME, le_rados_ioctx);
+	
+	if (rados_ioctx_snap_get_name(ioctx_r->io, snapid, snapname, sizeof(snapname)) < 0) {
+		RETURN_FALSE;
+	}
+	
+	RETURN_STRINGL(snapname, strlen(snapname), 1);
+}
+
+PHP_FUNCTION(rados_ioctx_snap_get_stamp) {
+	php_rados_ioctx *ioctx_r;
+	zval *zioctx;
+	time_t time;
+	long snapid;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &zioctx, &snapid) == FAILURE) {
+		RETURN_FALSE;
+	}
+	
+	ZEND_FETCH_RESOURCE(ioctx_r, php_rados_ioctx*, &zioctx, -1, PHP_RADOS_IOCTX_RES_NAME, le_rados_ioctx);
+	
+	if (rados_ioctx_snap_get_stamp(ioctx_r->io, snapid, &time) < 0) {
+		RETURN_FALSE;
+	}
+	
+	RETURN_LONG(time);
+}
+
 PHP_MINIT_FUNCTION(rados)
 {
 	le_rados_cluster = zend_register_list_destructors_ex(NULL, NULL, PHP_RADOS_CLUSTER_RES_NAME, module_number);
@@ -858,7 +1003,7 @@ PHP_MINIT_FUNCTION(rados)
 PHP_MINFO_FUNCTION(rados)
 {
 	int major, minor, extra = 0;
-	char compiled_ver[16], linked_ver[16];
+	char compiled_ver[16], linked_ver[16], output_buf[8];
 
 	rados_version(&major, &minor, &extra);
 
@@ -870,6 +1015,12 @@ PHP_MINFO_FUNCTION(rados)
 	php_info_print_table_row(2, "Rados extension version", PHP_RADOS_EXTVER);
 	php_info_print_table_row(2, "librados version (linked)", linked_ver);
 	php_info_print_table_row(2, "librados version (compiled)", compiled_ver);
+	
+	sprintf(output_buf, "%d", PHP_RADOS_SNAP_NAME_MAX_LENGTH);
+	php_info_print_table_row(2, "Maximum length snapshot name", output_buf);
+	
+	sprintf(output_buf, "%d", PHP_RADOS_SNAP_MAX_NUM);
+	php_info_print_table_row(2, "Maximum snapshots per pool", output_buf);
 	php_info_print_table_end();
 }
 
