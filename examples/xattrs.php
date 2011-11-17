@@ -1,22 +1,22 @@
 <?php
 
-$r = new Rados();
-$r->initialize();
+$rados = rados_create();
 
-$pool = $r->open_pool("phprados");
+rados_conf_read_file($rados, "/etc/ceph/ceph.conf");
+rados_connect($rados);
 
-$objname = "testobject";
+$io = rados_ioctx_create($rados, "phprados");
 
-$r->create($pool, $objname);
+rados_write_full($io, "passwd", file_get_contents("/etc/passwd"));
 
-$data = file_get_contents("/etc/passwd");
-$r->write_full($pool, $objname, $data);
+rados_setxattr($io, "passwd", "aap", "attr1");
+rados_setxattr($io, "passwd", "noot", "attr2");
+rados_setxattr($io, "passwd", "mies", "attr3");
 
-$r->setxattr($pool, $objname, "content_type", "text/plain");
-$r->setxattr($pool, $objname, "md5sum", md5($data));
+var_dump(rados_getxattrs($io, "passwd"));
 
-echo "Dumping the \"content_type\" attribute: ".$r->getxattr($pool, $objname, "content_type")."\n";
+rados_ioctx_destroy($io);
 
-var_dump($r->getxattrs($pool, $objname));
+rados_shutdown($rados);
 
 ?>

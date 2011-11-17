@@ -1,14 +1,12 @@
 <?php
 
-$r = new Rados(array(
-    'config_file' => '/path/to/ceph.conf',      // -c
-    'monitor_ip' => '1.2.3.4',                  // -m
-    'cephx_name' => 'admin',                    // -n
-    'cephx_keyfile' => '/path/to/keyfile',      // -K
-    'cephx_keyring' => '/path/to/keyring.bin',  // -k
-));
-$r->initialize();
+$rados = rados_create();
+rados_conf_set('mon addr', '1.2.3.4');
+rados_conf_set('keyring', '/path/to/keyring.bin');
+rados_connect($rados);
 
-var_dump($r->list_pools());
+print_r(rados_pool_list($rados));
+
+rados_shutdown($rados);
 
 ?>
