@@ -19,7 +19,7 @@
 int le_rados_cluster;
 int le_rados_ioctx;
 
-ZEND_BEGIN_ARG_INFO(arginfo_rados_create, 0)
+ZEND_BEGIN_ARG_INFO_EX(arginfo_rados_create, 0, 0, 0)
 	ZEND_ARG_INFO(0, id)
 ZEND_END_ARG_INFO()
 
@@ -61,7 +61,7 @@ ZEND_BEGIN_ARG_INFO(arginfo_rados_pool_lookup, 0)
 	ZEND_ARG_INFO(0, pool)
 ZEND_END_ARG_INFO()
 
-ZEND_BEGIN_ARG_INFO(arginfo_rados_pool_create, 0)
+ZEND_BEGIN_ARG_INFO_EX(arginfo_rados_pool_create, 0, 0, 2)
 	ZEND_ARG_INFO(0, cluster)
 	ZEND_ARG_INFO(0, pool)
 	ZEND_ARG_INFO(0, options)
@@ -81,7 +81,7 @@ ZEND_BEGIN_ARG_INFO(arginfo_rados_ioctx_pool_get_auid, 0)
 	ZEND_ARG_INFO(0, ioctx)
 ZEND_END_ARG_INFO()
 
-ZEND_BEGIN_ARG_INFO(arginfo_rados_write, 0)
+ZEND_BEGIN_ARG_INFO_EX(arginfo_rados_write, 0, 0, 3)
 	ZEND_ARG_INFO(0, ioctx)
 	ZEND_ARG_INFO(0, oid)
 	ZEND_ARG_INFO(0, buffer)
@@ -94,7 +94,7 @@ ZEND_BEGIN_ARG_INFO(arginfo_rados_write_full, 0)
 	ZEND_ARG_INFO(0, buffer)
 ZEND_END_ARG_INFO()
 
-ZEND_BEGIN_ARG_INFO(arginfo_rados_read, 0)
+ZEND_BEGIN_ARG_INFO_EX(arginfo_rados_read, 0, 0, 2)
 	ZEND_ARG_INFO(0, ioctx)
 	ZEND_ARG_INFO(0, oid)
 	ZEND_ARG_INFO(0, offset)
@@ -105,7 +105,7 @@ ZEND_BEGIN_ARG_INFO(arginfo_rados_remove, 0)
 	ZEND_ARG_INFO(0, oid)
 ZEND_END_ARG_INFO()
 
-ZEND_BEGIN_ARG_INFO(arginfo_rados_trunc, 0)
+ZEND_BEGIN_ARG_INFO_EX(arginfo_rados_trunc, 0, 0, 2)
 	ZEND_ARG_INFO(0, ioctx)
 	ZEND_ARG_INFO(0, oid)
 	ZEND_ARG_INFO(0, size)
@@ -180,7 +180,7 @@ ZEND_BEGIN_ARG_INFO(arginfo_rados_rollback, 0)
 	ZEND_ARG_INFO(0, snapname)
 ZEND_END_ARG_INFO()
 
-ZEND_BEGIN_ARG_INFO(arginfo_rados_ioctx_snap_list, 0)
+ZEND_BEGIN_ARG_INFO_EX(arginfo_rados_ioctx_snap_list, 0, 0, 1)
 	ZEND_ARG_INFO(0, ioctx)
 	ZEND_ARG_INFO(0, maxsnaps)
 ZEND_END_ARG_INFO()
