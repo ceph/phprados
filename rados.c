@@ -430,8 +430,8 @@ PHP_FUNCTION(rados_pool_create)
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs|a", &zcluster, &pool, &pool_len, &options) == FAILURE) {
         RETURN_NULL();
     }
-    
-    if (Z_TYPE_P(options) == IS_ARRAY) {
+	
+    if (ZEND_NUM_ARGS() == 3 && Z_TYPE_P(options) == IS_ARRAY) {
 		zend_hash_internal_pointer_reset_ex(Z_ARRVAL_P(options), &pos);
 		while (zend_hash_get_current_data_ex(Z_ARRVAL_P(options), (void **)&entry, &pos) == SUCCESS) {
 			if (zend_hash_get_current_key_ex(Z_ARRVAL_P(options), &key, &key_len, &option, 0, &pos) != HASH_KEY_IS_STRING) {
