@@ -1,6 +1,6 @@
 1. Before installing this extension, please make sure your system meets the following requirements:
 * At least PHP 5.2
-* You have librados(-dev), libceph(-dev), libcrush and libatomic-ops-dev installed
+* You have librados2(-dev), libcrush1 and libatomic-ops-dev installed
 * You have the "phpize" binary
 * You have a C/C++ compiler on your system
 
@@ -20,3 +20,6 @@ $ echo "extension=rados.so" > /etc/php5/conf.d/php.ini
 
 4. Verify the extension is loaded
 Run a phpinfo(); this should show the RADOS extension being loaded
+
+$ php --ri rados
+$ php --re rados

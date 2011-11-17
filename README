@@ -1,16 +1,17 @@
 ** PHPRADOS **
 phprados is a PHP extension for librados ( http://ceph.newdream.net/wiki/Librados ).
 
-The extension wraps the C++ API of librados into a extension, where almost all the native methods are implemented.
-
-A few methods were added (write_full and list_objects) to make it a easier extension to use in PHP.
+The extension wraps the C API of librados into a extension, where almost all the native methods are implemented.
 
 ** LIMITATIONS **
 The extension should work on both 32 and 64-bit systems, but due to PHP's engine it might now work well with very large objects.
 
 Also, the selfmanaged snapshots are not implemented in the extension since their usage is pretty rare.
 
-Right now pool names are limited to a length of 128 characters.
+** METHODS / FUNCTIONS **
+For a full overview of the available functions, open a terminal and run:
+
+$ php --re rados
 
 ** SOURCES **
 Articles used for this extension:
@@ -23,8 +24,7 @@ Articles used for this extension:
 Need libraries (Ubuntu / Debian):
 * libatomic-ops-dev (Needed for librados)
 * libcrush1(-dev)
-* librados1(-dev)
-* libceph1(-dev)
+* librados2(-dev)
 
 ** HELP **
 phprados comes as it is, but there could always be bugs or issues.
