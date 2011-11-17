@@ -812,7 +812,7 @@ PHP_FUNCTION(rados_getxattrs) {
 		if (name == NULL) {
 			break;
 		}
-		add_assoc_string(return_value, name, val, 1);
+		add_assoc_stringl_ex(return_value, name, strlen(name)+1, val, len, 1);
 	}
 	rados_getxattrs_end(iter);
 }
