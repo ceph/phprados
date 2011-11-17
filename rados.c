@@ -19,7 +19,7 @@
 int le_rados_cluster;
 int le_rados_ioctx;
 
-ZEND_BEGIN_ARG_INFO(arginfo_rados_create, 0)
+ZEND_BEGIN_ARG_INFO_EX(arginfo_rados_create, 0, 0, 0)
 	ZEND_ARG_INFO(0, id)
 ZEND_END_ARG_INFO()
 
@@ -61,7 +61,7 @@ ZEND_BEGIN_ARG_INFO(arginfo_rados_pool_lookup, 0)
 	ZEND_ARG_INFO(0, pool)
 ZEND_END_ARG_INFO()
 
-ZEND_BEGIN_ARG_INFO(arginfo_rados_pool_create, 0)
+ZEND_BEGIN_ARG_INFO_EX(arginfo_rados_pool_create, 0, 0, 2)
 	ZEND_ARG_INFO(0, cluster)
 	ZEND_ARG_INFO(0, pool)
 	ZEND_ARG_INFO(0, options)
@@ -81,7 +81,7 @@ ZEND_BEGIN_ARG_INFO(arginfo_rados_ioctx_pool_get_auid, 0)
 	ZEND_ARG_INFO(0, ioctx)
 ZEND_END_ARG_INFO()
 
-ZEND_BEGIN_ARG_INFO(arginfo_rados_write, 0)
+ZEND_BEGIN_ARG_INFO_EX(arginfo_rados_write, 0, 0, 3)
 	ZEND_ARG_INFO(0, ioctx)
 	ZEND_ARG_INFO(0, oid)
 	ZEND_ARG_INFO(0, buffer)
@@ -94,7 +94,7 @@ ZEND_BEGIN_ARG_INFO(arginfo_rados_write_full, 0)
 	ZEND_ARG_INFO(0, buffer)
 ZEND_END_ARG_INFO()
 
-ZEND_BEGIN_ARG_INFO(arginfo_rados_read, 0)
+ZEND_BEGIN_ARG_INFO_EX(arginfo_rados_read, 0, 0, 2)
 	ZEND_ARG_INFO(0, ioctx)
 	ZEND_ARG_INFO(0, oid)
 	ZEND_ARG_INFO(0, offset)
@@ -105,7 +105,7 @@ ZEND_BEGIN_ARG_INFO(arginfo_rados_remove, 0)
 	ZEND_ARG_INFO(0, oid)
 ZEND_END_ARG_INFO()
 
-ZEND_BEGIN_ARG_INFO(arginfo_rados_trunc, 0)
+ZEND_BEGIN_ARG_INFO_EX(arginfo_rados_trunc, 0, 0, 2)
 	ZEND_ARG_INFO(0, ioctx)
 	ZEND_ARG_INFO(0, oid)
 	ZEND_ARG_INFO(0, size)
@@ -180,7 +180,7 @@ ZEND_BEGIN_ARG_INFO(arginfo_rados_rollback, 0)
 	ZEND_ARG_INFO(0, snapname)
 ZEND_END_ARG_INFO()
 
-ZEND_BEGIN_ARG_INFO(arginfo_rados_ioctx_snap_list, 0)
+ZEND_BEGIN_ARG_INFO_EX(arginfo_rados_ioctx_snap_list, 0, 0, 1)
 	ZEND_ARG_INFO(0, ioctx)
 	ZEND_ARG_INFO(0, maxsnaps)
 ZEND_END_ARG_INFO()
@@ -430,8 +430,8 @@ PHP_FUNCTION(rados_pool_create)
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs|a", &zcluster, &pool, &pool_len, &options) == FAILURE) {
         RETURN_NULL();
     }
-    
-    if (Z_TYPE_P(options) == IS_ARRAY) {
+	
+    if (ZEND_NUM_ARGS() == 3 && Z_TYPE_P(options) == IS_ARRAY) {
 		zend_hash_internal_pointer_reset_ex(Z_ARRVAL_P(options), &pos);
 		while (zend_hash_get_current_data_ex(Z_ARRVAL_P(options), (void **)&entry, &pos) == SUCCESS) {
 			if (zend_hash_get_current_key_ex(Z_ARRVAL_P(options), &key, &key_len, &option, 0, &pos) != HASH_KEY_IS_STRING) {
@@ -812,7 +812,7 @@ PHP_FUNCTION(rados_getxattrs) {
 		if (name == NULL) {
 			break;
 		}
-		add_assoc_string(return_value, name, val, 1);
+		add_assoc_stringl_ex(return_value, name, strlen(name)+1, val, len, 1);
 	}
 	rados_getxattrs_end(iter);
 }

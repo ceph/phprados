@@ -1,4 +1,4 @@
-1. Right now phprados is "semi-OOP", where a High Level API might be desired to make things even easier in PHP
+1. Right now you only have the plain librados functions. My goal is to have a OOP interface in PHP which makes using RADOS easier
 2. To access RADOS objects easily we want a stream wrapper so we can access objects via: file_get_contents("rados://poolname/objname");
-3. The selfmanaged snapshots are not implemented yet, should be done in the future
-4. Create a application on top of phprados to show it's capabilities
+3. Create a application on top of phprados to show it's capabilities
+4. A session handler which saves PHP sessions in RADOS
