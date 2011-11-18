@@ -38,6 +38,7 @@ PHP_FUNCTION(rados_conf_set);
 PHP_FUNCTION(rados_conf_get);
 PHP_FUNCTION(rados_ioctx_create);
 PHP_FUNCTION(rados_ioctx_destroy);
+PHP_FUNCTION(rados_pool_list);
 PHP_FUNCTION(rados_pool_lookup);
 PHP_FUNCTION(rados_pool_create);
 PHP_FUNCTION(rados_pool_delete);

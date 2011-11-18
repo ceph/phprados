@@ -52,6 +52,10 @@ ZEND_BEGIN_ARG_INFO(arginfo_rados_ioctx_create, 0)
 	ZEND_ARG_INFO(0, pool)
 ZEND_END_ARG_INFO()
 
+ZEND_BEGIN_ARG_INFO_EX(arginfo_rados_pool_list, 0, 0, 1)
+	ZEND_ARG_INFO(0, cluster)
+ZEND_END_ARG_INFO()
+
 ZEND_BEGIN_ARG_INFO(arginfo_rados_ioctx_destroy, 0)
 	ZEND_ARG_INFO(0, ioctx)
 ZEND_END_ARG_INFO()
@@ -209,6 +213,7 @@ const zend_function_entry rados_functions[] = {
 	PHP_FE(rados_conf_get, arginfo_rados_conf_get)
 	PHP_FE(rados_ioctx_create, arginfo_rados_ioctx_create)
 	PHP_FE(rados_ioctx_destroy, arginfo_rados_ioctx_destroy)
+	PHP_FE(rados_pool_list, arginfo_rados_pool_list)
 	PHP_FE(rados_pool_lookup, arginfo_rados_pool_lookup)
 	PHP_FE(rados_pool_create, arginfo_rados_pool_create)
 	PHP_FE(rados_pool_delete, arginfo_rados_pool_delete)
@@ -390,6 +395,38 @@ PHP_FUNCTION(rados_ioctx_destroy)
     ZEND_FETCH_RESOURCE(ioctx_r, php_rados_ioctx*, &zioctx, -1, PHP_RADOS_IOCTX_RES_NAME, le_rados_ioctx);
 
     rados_ioctx_destroy(ioctx_r->io);
+}
+
+PHP_FUNCTION(rados_pool_list)
+{
+    php_rados_cluster *cluster_r;
+    zval *zcluster;
+
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &zcluster) == FAILURE) {
+        RETURN_NULL();
+    }
+
+    ZEND_FETCH_RESOURCE(cluster_r, php_rados_cluster*, &zcluster, -1, PHP_RADOS_CLUSTER_RES_NAME, le_rados_cluster);
+   
+	int buff_size = rados_pool_list(cluster_r->cluster, NULL, 0);
+	char buf[buff_size];
+
+	int r = rados_pool_list(cluster_r->cluster, buf, buff_size);
+	if (r != buff_size) {
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Buffer size mismatch: Got %d, expected %d", r, buff_size);
+		RETURN_FALSE;
+	}
+
+	array_init(return_value);
+	const char *b = buf;
+	while (1) {
+		if (b[0] == '\0') {
+			break;
+		}
+
+		add_next_index_string(return_value, b, 1);
+		b += strlen(b) + 1;
+	}
 }
 
 PHP_FUNCTION(rados_pool_lookup)
