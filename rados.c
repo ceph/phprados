@@ -1029,6 +1029,7 @@ PHP_FUNCTION(rados_ioctx_snap_get_stamp) {
 	RETURN_LONG(time);
 }
 
+/* Stream functions */
 php_stream_ops rados_ops = {
     rados_stream_write,
     rados_stream_read,
@@ -1059,6 +1060,30 @@ php_stream_wrapper php_stream_rados_wrapper = {
     NULL,
     0
 };
+
+static void rados_stream_parse_url(char *url, char *pool, char *oid)
+{
+	char * pch;
+	pch = strtok(url, "/");
+	
+	int i = 0;
+	while (pch != NULL) {
+	
+		if (i == 0) {
+			// rados://
+		} else if (i == 1) {
+			sprintf(pool, "%s", pch);
+		} else if (i == 2) {
+			sprintf(oid, "%s", pch);
+		} else {
+			strcat(oid, "/");
+			strcat(oid, pch);
+		}
+		
+		pch = strtok(NULL, "/");
+		i++;
+	}
+}
 
 static php_stream * rados_wrapper_open_url(php_stream_wrapper *wrapper, char *path, char *mode, int options, char **opened_path, php_stream_context *context STREAMS_DC TSRMLS_DC)
 {
@@ -1097,7 +1122,37 @@ static int rados_stream_stat(php_stream *stream, php_stream_statbuf *ssb TSRMLS_
 
 static int rados_wrapper_stat(php_stream_wrapper *wrapper, char *url, int flags, php_stream_statbuf *ssb, php_stream_context *context TSRMLS_DC)
 {
-    return 1;
+	char oid[PHP_RADOS_OID_NAME_MAX_LENGTH];
+	char pool[PHP_RADOS_POOL_NAME_MAX_LENGTH];
+	uint64_t psize;
+	uint64_t auid;
+	time_t pmtime;
+	rados_t cluster;
+	rados_ioctx_t ioctx;
+	
+	rados_stream_parse_url(url, &pool, &oid);
+
+	rados_create(&cluster, NULL);
+	rados_conf_read_file(cluster, "/etc/ceph/ceph.conf");
+	rados_connect(cluster);
+	
+	rados_ioctx_create(cluster, pool, &ioctx);
+	
+	int r = -1;
+	
+	r = rados_stat(ioctx, oid, &psize, &pmtime);
+	
+	if (r > 0) {
+		rados_ioctx_pool_get_auid(ioctx, &auid);
+		ssb->sb.st_uid = auid;
+		ssb->sb.st_size = psize;
+		ssb->sb.st_mtime = pmtime;
+	}
+	
+	rados_ioctx_destroy(ioctx);
+	rados_shutdown(cluster);
+	
+    return r;
 }
 
 static int rados_wrapper_unlink(php_stream_wrapper *wrapper, char *url, int options, php_stream_context *context TSRMLS_DC)
@@ -1113,11 +1168,15 @@ static int rados_wrapper_rename(php_stream_wrapper *wrapper, char *url_from, cha
 static int rados_wrapper_mkdir(php_stream_wrapper *wrapper, char *url, int mode, int options, php_stream_context *context TSRMLS_DC) {
 	rados_t cluster;
 	int r = 0;
-
+	char oid[PHP_RADOS_OID_NAME_MAX_LENGTH];
+	char pool[PHP_RADOS_POOL_NAME_MAX_LENGTH];
+	
+	rados_stream_parse_url(url, &pool, &oid);
+	
 	rados_create(&cluster, NULL);
 	rados_conf_read_file(cluster, "/etc/ceph/ceph.conf");
 	rados_connect(cluster);
-	r = rados_pool_create(cluster, url+(strlen(PHP_RADOS_STREAM_WRAPPER)+3));
+	r = rados_pool_create(cluster, pool);
 	rados_shutdown(cluster);
 
 	return r;
@@ -1126,11 +1185,15 @@ static int rados_wrapper_mkdir(php_stream_wrapper *wrapper, char *url, int mode,
 static int rados_wrapper_rmdir(php_stream_wrapper *wrapper, char *url, int options, php_stream_context *context TSRMLS_DC) {
 	rados_t cluster;
 	int r = 0;
-
+	char oid[PHP_RADOS_OID_NAME_MAX_LENGTH];
+	char pool[PHP_RADOS_POOL_NAME_MAX_LENGTH];
+	
+	rados_stream_parse_url(url, &pool, &oid);
+	
 	rados_create(&cluster, NULL);
 	rados_conf_read_file(cluster, "/etc/ceph/ceph.conf");
 	rados_connect(cluster);
-	r = rados_pool_delete(cluster, url+(strlen(PHP_RADOS_STREAM_WRAPPER)+3));
+	r = rados_pool_delete(cluster, pool);
 	rados_shutdown(cluster);
 
 	return r;
