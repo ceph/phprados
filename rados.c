@@ -1167,34 +1167,36 @@ static int rados_wrapper_rename(php_stream_wrapper *wrapper, char *url_from, cha
 
 static int rados_wrapper_mkdir(php_stream_wrapper *wrapper, char *url, int mode, int options, php_stream_context *context TSRMLS_DC) {
 	rados_t cluster;
-	int r = 0;
+	int r = 1;
 	char oid[PHP_RADOS_OID_NAME_MAX_LENGTH];
 	char pool[PHP_RADOS_POOL_NAME_MAX_LENGTH];
 	
 	rados_stream_parse_url(url, &pool, &oid);
 	
 	rados_create(&cluster, NULL);
-	rados_conf_read_file(cluster, "/etc/ceph/ceph.conf");
-	rados_connect(cluster);
-	r = rados_pool_create(cluster, pool);
-	rados_shutdown(cluster);
+	rados_conf_read_file(cluster, INI_STR("rados.conf"));
+	if (rados_connect(cluster) > 0) {
+		r = rados_pool_create(cluster, pool);
+		rados_shutdown(cluster);
+	}
 
 	return r;
 }
 
 static int rados_wrapper_rmdir(php_stream_wrapper *wrapper, char *url, int options, php_stream_context *context TSRMLS_DC) {
 	rados_t cluster;
-	int r = 0;
+	int r = 1;
 	char oid[PHP_RADOS_OID_NAME_MAX_LENGTH];
 	char pool[PHP_RADOS_POOL_NAME_MAX_LENGTH];
 	
 	rados_stream_parse_url(url, &pool, &oid);
 	
 	rados_create(&cluster, NULL);
-	rados_conf_read_file(cluster, "/etc/ceph/ceph.conf");
-	rados_connect(cluster);
-	r = rados_pool_delete(cluster, pool);
-	rados_shutdown(cluster);
+	rados_conf_read_file(cluster, INI_STR("rados.conf"));
+	if (rados_connect(cluster) > 0) {
+		r = rados_pool_delete(cluster, pool);
+		rados_shutdown(cluster);
+	}
 
 	return r;
 }
@@ -1203,6 +1205,12 @@ static php_stream* rados_wrapper_open_dir(php_stream_wrapper *wrapper, char *fil
 	
 }
 
+PHP_INI_BEGIN()
+	PHP_INI_ENTRY("rados.user", "admin", PHP_INI_ALL, NULL)
+	PHP_INI_ENTRY("rados.secret", "/etc/ceph/secret", PHP_INI_ALL, NULL)
+	PHP_INI_ENTRY("rados.conf", "/etc/ceph/ceph.conf", PHP_INI_ALL, NULL)
+PHP_INI_END()
+
 PHP_MINIT_FUNCTION(rados)
 {
 	le_rados_cluster = zend_register_list_destructors_ex(NULL, NULL, PHP_RADOS_CLUSTER_RES_NAME, module_number);
@@ -1210,12 +1218,18 @@ PHP_MINIT_FUNCTION(rados)
 
 	php_register_url_stream_wrapper(PHP_RADOS_STREAM_WRAPPER, &php_stream_rados_wrapper TSRMLS_CC);
 
+	REGISTER_INI_ENTRIES();
+
 	return SUCCESS;
 }
 
 PHP_MSHUTDOWN_FUNCTION(rados)
 {
 	php_unregister_url_stream_wrapper(PHP_RADOS_STREAM_WRAPPER TSRMLS_CC);
+
+	UNREGISTER_INI_ENTRIES();
+
+	return SUCCESS;
 }
 
 PHP_MINFO_FUNCTION(rados)
@@ -1240,17 +1254,19 @@ PHP_MINFO_FUNCTION(rados)
 	sprintf(output_buf, "%d", PHP_RADOS_SNAP_MAX_NUM);
 	php_info_print_table_row(2, "Maximum snapshots per pool", output_buf);
 	php_info_print_table_end();
+	
+	DISPLAY_INI_ENTRIES();
 }
 
 zend_module_entry rados_module_entry = {
 	STANDARD_MODULE_HEADER,
 	PHP_RADOS_EXTNAME,
-	rados_functions,       /* Functions */	
-	PHP_MINIT(rados),      /* MINIT */
-	NULL,                  /* MSHUTDOWN */
-	NULL,                  /* RINIT */
-	NULL,                  /* RSHUTDOWN */
-	PHP_MINFO(rados),      /* MINFO */
+	rados_functions,
+	PHP_MINIT(rados),
+	PHP_MSHUTDOWN(rados),
+	NULL,
+	NULL,
+	PHP_MINFO(rados),
 	PHP_RADOS_EXTVER,
 	STANDARD_MODULE_PROPERTIES
 };
