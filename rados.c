@@ -1170,17 +1170,25 @@ static int rados_wrapper_mkdir(php_stream_wrapper *wrapper, char *url, int mode,
 	int r = 1;
 	char oid[PHP_RADOS_OID_NAME_MAX_LENGTH];
 	char pool[PHP_RADOS_POOL_NAME_MAX_LENGTH];
-	
+
 	rados_stream_parse_url(url, &pool, &oid);
-	
+
+	if (strlen(pool) == 0) {
+			return -255;
+	}
+
 	rados_create(&cluster, NULL);
-	rados_conf_read_file(cluster, INI_STR("rados.conf"));
-	if (rados_connect(cluster) > 0) {
+
+	if (strlen(INI_STR("radosstream.conf")) > 0) {
+		rados_conf_read_file(cluster, INI_STR("radosstream.conf"));
+	}
+
+	if (rados_connect(cluster) >= 0) {
 		r = rados_pool_create(cluster, pool);
 		rados_shutdown(cluster);
 	}
 
-	return r;
+	return 0;
 }
 
 static int rados_wrapper_rmdir(php_stream_wrapper *wrapper, char *url, int options, php_stream_context *context TSRMLS_DC) {
@@ -1188,11 +1196,15 @@ static int rados_wrapper_rmdir(php_stream_wrapper *wrapper, char *url, int optio
 	int r = 1;
 	char oid[PHP_RADOS_OID_NAME_MAX_LENGTH];
 	char pool[PHP_RADOS_POOL_NAME_MAX_LENGTH];
-	
+
 	rados_stream_parse_url(url, &pool, &oid);
-	
+
 	rados_create(&cluster, NULL);
-	rados_conf_read_file(cluster, INI_STR("rados.conf"));
+
+	if (strlen(INI_STR("radosstream.conf")) > 0) {
+		rados_conf_read_file(cluster, INI_STR("radosstream.conf"));
+	}
+
 	if (rados_connect(cluster) > 0) {
 		r = rados_pool_delete(cluster, pool);
 		rados_shutdown(cluster);
@@ -1206,9 +1218,9 @@ static php_stream* rados_wrapper_open_dir(php_stream_wrapper *wrapper, char *fil
 }
 
 PHP_INI_BEGIN()
-	PHP_INI_ENTRY("rados.user", "admin", PHP_INI_ALL, NULL)
-	PHP_INI_ENTRY("rados.secret", "/etc/ceph/secret", PHP_INI_ALL, NULL)
-	PHP_INI_ENTRY("rados.conf", "/etc/ceph/ceph.conf", PHP_INI_ALL, NULL)
+	PHP_INI_ENTRY("radosstream.user", "admin", PHP_INI_ALL, NULL)
+	PHP_INI_ENTRY("radosstream.secret", "/etc/ceph/secret", PHP_INI_ALL, NULL)
+	PHP_INI_ENTRY("radosstream.conf", "/etc/ceph/ceph.conf", PHP_INI_ALL, NULL)
 PHP_INI_END()
 
 PHP_MINIT_FUNCTION(rados)
