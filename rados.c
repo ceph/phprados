@@ -1177,11 +1177,20 @@ static int rados_wrapper_mkdir(php_stream_wrapper *wrapper, char *url, int mode,
 			return -255;
 	}
 
-	rados_create(&cluster, NULL);
+	if (strlen(INI_STR("radosstream.user")) > 0) {
+		rados_create(&cluster, INI_STR("radosstream.user"));
+	} else {
+		rados_create(&cluster, NULL);
+	}
 
 	if (strlen(INI_STR("radosstream.conf")) > 0) {
 		rados_conf_read_file(cluster, INI_STR("radosstream.conf"));
 	}
+
+	if (strlen(INI_STR("radosstream.secret")) > 0) {
+		rados_conf_set(cluster, "keyring", INI_STR("radosstream.secret"));
+	}
+
 
 	if (rados_connect(cluster) >= 0) {
 		r = rados_pool_create(cluster, pool);
@@ -1224,9 +1233,9 @@ static php_stream* rados_wrapper_open_dir(php_stream_wrapper *wrapper, char *fil
 }
 
 PHP_INI_BEGIN()
-	PHP_INI_ENTRY("radosstream.user", "admin", PHP_INI_ALL, NULL)
-	PHP_INI_ENTRY("radosstream.secret", "/etc/ceph/secret", PHP_INI_ALL, NULL)
-	PHP_INI_ENTRY("radosstream.conf", "/etc/ceph/ceph.conf", PHP_INI_ALL, NULL)
+	PHP_INI_ENTRY("radosstream.user", "", PHP_INI_ALL, NULL)
+	PHP_INI_ENTRY("radosstream.secret", "", PHP_INI_ALL, NULL)
+	PHP_INI_ENTRY("radosstream.conf", "", PHP_INI_ALL, NULL)
 PHP_INI_END()
 
 PHP_MINIT_FUNCTION(rados)
