@@ -1186,9 +1186,15 @@ static int rados_wrapper_mkdir(php_stream_wrapper *wrapper, char *url, int mode,
 	if (rados_connect(cluster) >= 0) {
 		r = rados_pool_create(cluster, pool);
 		rados_shutdown(cluster);
+	} else {
+		return 0;
 	}
 
-	return 0;
+	if (r < 0) {
+		return 0;
+	}
+
+	return 1;
 }
 
 static int rados_wrapper_rmdir(php_stream_wrapper *wrapper, char *url, int options, php_stream_context *context TSRMLS_DC) {
