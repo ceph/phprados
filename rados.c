@@ -1177,8 +1177,8 @@ static int rados_wrapper_mkdir(php_stream_wrapper *wrapper, char *url, int mode,
 			return -255;
 	}
 
-	if (strlen(INI_STR("radosstream.user")) > 0) {
-		rados_create(&cluster, INI_STR("radosstream.user"));
+	if (strlen(INI_STR("radosstream.id")) > 0) {
+		rados_create(&cluster, INI_STR("radosstream.id"));
 	} else {
 		rados_create(&cluster, NULL);
 	}
@@ -1233,7 +1233,7 @@ static php_stream* rados_wrapper_open_dir(php_stream_wrapper *wrapper, char *fil
 }
 
 PHP_INI_BEGIN()
-	PHP_INI_ENTRY("radosstream.user", "", PHP_INI_ALL, NULL)
+	PHP_INI_ENTRY("radosstream.id", "", PHP_INI_ALL, NULL)
 	PHP_INI_ENTRY("radosstream.secret", "", PHP_INI_ALL, NULL)
 	PHP_INI_ENTRY("radosstream.conf", "", PHP_INI_ALL, NULL)
 PHP_INI_END()
