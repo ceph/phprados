@@ -869,7 +869,7 @@ PHP_FUNCTION(rados_objects_list) {
 
 	rados_objects_list_open(ioctx_r->io, &ctx);
 	const char *oid;
-	while (rados_objects_list_next(ctx, &oid) == 0) {
+	while (rados_objects_list_next(ctx, &oid, NULL) == 0) {
 		add_next_index_string(return_value, oid, 1);
 	}
 	rados_objects_list_close(ctx);
