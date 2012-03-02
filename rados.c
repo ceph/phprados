@@ -268,7 +268,7 @@ PHP_FUNCTION(rados_shutdown)
 {
     php_rados_cluster *cluster_r;
     zval *zcluster;
-	
+
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &zcluster) == FAILURE) {
         RETURN_FALSE;
     }
@@ -407,7 +407,7 @@ PHP_FUNCTION(rados_pool_list)
     }
 
     ZEND_FETCH_RESOURCE(cluster_r, php_rados_cluster*, &zcluster, -1, PHP_RADOS_CLUSTER_RES_NAME, le_rados_cluster);
-   
+
 	int buff_size = rados_pool_list(cluster_r->cluster, NULL, 0);
 	char buf[buff_size];
 
@@ -467,7 +467,7 @@ PHP_FUNCTION(rados_pool_create)
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs|a", &zcluster, &pool, &pool_len, &options) == FAILURE) {
         RETURN_NULL();
     }
-	
+
     if (ZEND_NUM_ARGS() == 3 && Z_TYPE_P(options) == IS_ARRAY) {
 		zend_hash_internal_pointer_reset_ex(Z_ARRVAL_P(options), &pos);
 		while (zend_hash_get_current_data_ex(Z_ARRVAL_P(options), (void **)&entry, &pos) == SUCCESS) {
@@ -564,7 +564,7 @@ PHP_FUNCTION(rados_ioctx_pool_get_auid)
     if (rados_ioctx_pool_get_auid(ioctx_r->io, &auid) < 0) {
 		RETURN_FALSE;
 	}
-	
+
 	RETURN_LONG(auid);
 }
 
@@ -618,19 +618,19 @@ PHP_FUNCTION(rados_read) {
 	size_t size;
 	zval *zioctx;
 	uint64_t offset = 0;
-	
+
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rsl|l", &zioctx, &oid, &oid_len, &size, &offset) == FAILURE) {
 		RETURN_FALSE;
 	}
-	
+
 	char buffer[size];
-	
+
 	ZEND_FETCH_RESOURCE(ioctx_r, php_rados_ioctx*, &zioctx, -1, PHP_RADOS_IOCTX_RES_NAME, le_rados_ioctx);
 
 	if (rados_read(ioctx_r->io, oid, buffer, size, offset) < 0) {
 		RETURN_FALSE;
 	}
-	
+
 	RETURN_STRINGL(buffer, size, 1);
 }
 
@@ -639,17 +639,17 @@ PHP_FUNCTION(rados_remove) {
 	char *oid=NULL;
 	int oid_len;
 	zval *zioctx;
-	
+
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &zioctx, &oid, &oid_len) == FAILURE) {
 		RETURN_FALSE;
 	}
-	
+
 	ZEND_FETCH_RESOURCE(ioctx_r, php_rados_ioctx*, &zioctx, -1, PHP_RADOS_IOCTX_RES_NAME, le_rados_ioctx);
 
 	if (rados_remove(ioctx_r->io, oid) < 0) {
 		RETURN_FALSE;
 	}
-	
+
 	RETURN_TRUE;
 }
 
@@ -659,17 +659,17 @@ PHP_FUNCTION(rados_trunc) {
 	int oid_len;
 	size_t size;
 	zval *zioctx;
-	
+
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rsl|l", &zioctx, &oid, &oid_len, &size) == FAILURE) {
 		RETURN_FALSE;
 	}
-	
+
 	ZEND_FETCH_RESOURCE(ioctx_r, php_rados_ioctx*, &zioctx, -1, PHP_RADOS_IOCTX_RES_NAME, le_rados_ioctx);
 
 	if (rados_trunc(ioctx_r->io, oid, size) < 0) {
 		RETURN_FALSE;
 	}
-	
+
 	RETURN_TRUE;
 }
 
@@ -704,17 +704,17 @@ PHP_FUNCTION(rados_clone_range) {
 	uint64_t dst_offset;
 	uint64_t src_offset;
 	zval *zioctx;
-	
+
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rslsll", &zioctx, &dst_oid, &dst_oid_len, &dst_offset, &src_oid, &src_oid_len, &src_offset, &size) == FAILURE) {
 		RETURN_FALSE;
 	}
-	
+
 	ZEND_FETCH_RESOURCE(ioctx_r, php_rados_ioctx*, &zioctx, -1, PHP_RADOS_IOCTX_RES_NAME, le_rados_ioctx);
 
 	if (rados_clone_range(ioctx_r->io, dst_oid, dst_offset, src_oid, src_offset, size) < 0) {
 		RETURN_FALSE;
 	}
-	
+
 	RETURN_TRUE;
 }
 
@@ -726,19 +726,19 @@ PHP_FUNCTION(rados_getxattr) {
 	int name_len;
 	size_t size;
 	zval *zioctx;
-	
+
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rssl", &zioctx, &oid, &oid_len, &name, &name_len, &size) == FAILURE) {
 		RETURN_FALSE;
 	}
-	
+
 	char buffer[size];
-	
+
 	ZEND_FETCH_RESOURCE(ioctx_r, php_rados_ioctx*, &zioctx, -1, PHP_RADOS_IOCTX_RES_NAME, le_rados_ioctx);
 
 	if (rados_getxattr(ioctx_r->io, oid, name, buffer, size) < 0) {
 		RETURN_FALSE;
 	}
-	
+
 	RETURN_STRINGL(buffer, size, 1);
 }
 
@@ -773,17 +773,17 @@ PHP_FUNCTION(rados_rmxattr) {
 	int name_len;
 	size_t size;
 	zval *zioctx;
-	
+
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rss", &zioctx, &oid, &oid_len, &name, &name_len) == FAILURE) {
 		RETURN_FALSE;
 	}
-	
+
 	ZEND_FETCH_RESOURCE(ioctx_r, php_rados_ioctx*, &zioctx, -1, PHP_RADOS_IOCTX_RES_NAME, le_rados_ioctx);
 
 	if (rados_rmxattr(ioctx_r->io, oid, name) < 0) {
 		RETURN_FALSE;
 	}
-	
+
 	RETURN_TRUE;
 }
 
@@ -884,18 +884,18 @@ PHP_FUNCTION(rados_ioctx_snap_create) {
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &zioctx, &snapname, &snapname_len) == FAILURE) {
 		RETURN_FALSE;
 	}
-	
+
 	if (snapname_len > PHP_RADOS_SNAP_NAME_MAX_LENGTH) {
 		php_error_docref(NULL TSRMLS_CC, E_ERROR, "The snapshot name (%s) is too long!", snapname);
 		RETURN_FALSE;
 	}
-	
+
 	ZEND_FETCH_RESOURCE(ioctx_r, php_rados_ioctx*, &zioctx, -1, PHP_RADOS_IOCTX_RES_NAME, le_rados_ioctx);
-	
+
 	if (rados_ioctx_snap_create(ioctx_r->io, snapname) < 0) {
 		RETURN_FALSE;
 	}
-	
+
 	RETURN_TRUE;
 }
 
@@ -908,13 +908,13 @@ PHP_FUNCTION(rados_ioctx_snap_remove) {
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &zioctx, &snapname, &snapname_len) == FAILURE) {
 		RETURN_FALSE;
 	}
-	
+
 	ZEND_FETCH_RESOURCE(ioctx_r, php_rados_ioctx*, &zioctx, -1, PHP_RADOS_IOCTX_RES_NAME, le_rados_ioctx);
-	
+
 	if (rados_ioctx_snap_remove(ioctx_r->io, snapname) < 0) {
 		RETURN_FALSE;
 	}
-	
+
 	RETURN_TRUE;
 }
 
@@ -929,13 +929,13 @@ PHP_FUNCTION(rados_rollback) {
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rss", &zioctx, &oid, &oid_len, &snapname, &snapname_len) == FAILURE) {
 		RETURN_FALSE;
 	}
-	
+
 	ZEND_FETCH_RESOURCE(ioctx_r, php_rados_ioctx*, &zioctx, -1, PHP_RADOS_IOCTX_RES_NAME, le_rados_ioctx);
-	
+
 	if (rados_rollback(ioctx_r->io, oid, snapname) < 0) {
 		RETURN_FALSE;
 	}
-	
+
 	RETURN_TRUE;
 }
 
@@ -949,7 +949,7 @@ PHP_FUNCTION(rados_ioctx_snap_list) {
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r|l", &zioctx, &maxsnaps) == FAILURE) {
 		RETURN_FALSE;
 	}
-	
+
 	ZEND_FETCH_RESOURCE(ioctx_r, php_rados_ioctx*, &zioctx, -1, PHP_RADOS_IOCTX_RES_NAME, le_rados_ioctx);
 
 	if (maxsnaps > PHP_RADOS_SNAP_MAX_NUM) {
@@ -958,7 +958,7 @@ PHP_FUNCTION(rados_ioctx_snap_list) {
 	}
 
 	rados_snap_t snaps[maxsnaps];
-	
+
 	r = rados_ioctx_snap_list(ioctx_r->io, snaps, maxsnaps);
 	if (r < 0) {
 		RETURN_FALSE;
@@ -981,13 +981,13 @@ PHP_FUNCTION(rados_ioctx_snap_lookup) {
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &zioctx, &snapname, &snapname_len) == FAILURE) {
 		RETURN_FALSE;
 	}
-	
+
 	ZEND_FETCH_RESOURCE(ioctx_r, php_rados_ioctx*, &zioctx, -1, PHP_RADOS_IOCTX_RES_NAME, le_rados_ioctx);
-	
+
 	if (rados_ioctx_snap_lookup(ioctx_r->io, snapname, &snapid) < 0) {
 		RETURN_FALSE;
 	}
-	
+
 	RETURN_LONG(snapid);
 }
 
@@ -1000,13 +1000,13 @@ PHP_FUNCTION(rados_ioctx_snap_get_name) {
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &zioctx, &snapid) == FAILURE) {
 		RETURN_FALSE;
 	}
-	
+
 	ZEND_FETCH_RESOURCE(ioctx_r, php_rados_ioctx*, &zioctx, -1, PHP_RADOS_IOCTX_RES_NAME, le_rados_ioctx);
-	
+
 	if (rados_ioctx_snap_get_name(ioctx_r->io, snapid, snapname, sizeof(snapname)) < 0) {
 		RETURN_FALSE;
 	}
-	
+
 	RETURN_STRINGL(snapname, strlen(snapname), 1);
 }
 
@@ -1019,16 +1019,17 @@ PHP_FUNCTION(rados_ioctx_snap_get_stamp) {
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &zioctx, &snapid) == FAILURE) {
 		RETURN_FALSE;
 	}
-	
+
 	ZEND_FETCH_RESOURCE(ioctx_r, php_rados_ioctx*, &zioctx, -1, PHP_RADOS_IOCTX_RES_NAME, le_rados_ioctx);
-	
+
 	if (rados_ioctx_snap_get_stamp(ioctx_r->io, snapid, &time) < 0) {
 		RETURN_FALSE;
 	}
-	
+
 	RETURN_LONG(time);
 }
 
+/* Stream functions */
 php_stream_ops rados_ops = {
     rados_stream_write,
     rados_stream_read,
@@ -1059,6 +1060,30 @@ php_stream_wrapper php_stream_rados_wrapper = {
     NULL,
     0
 };
+
+static void rados_stream_parse_url(char *url, char *pool, char *oid)
+{
+	char * pch;
+	pch = strtok(url, "/");
+
+	int i = 0;
+	while (pch != NULL) {
+
+		if (i == 0) {
+			// rados://
+		} else if (i == 1) {
+			sprintf(pool, "%s", pch);
+		} else if (i == 2) {
+			sprintf(oid, "%s", pch);
+		} else {
+			strcat(oid, "/");
+			strcat(oid, pch);
+		}
+
+		pch = strtok(NULL, "/");
+		i++;
+	}
+}
 
 static php_stream * rados_wrapper_open_url(php_stream_wrapper *wrapper, char *path, char *mode, int options, char **opened_path, php_stream_context *context STREAMS_DC TSRMLS_DC)
 {
@@ -1097,7 +1122,37 @@ static int rados_stream_stat(php_stream *stream, php_stream_statbuf *ssb TSRMLS_
 
 static int rados_wrapper_stat(php_stream_wrapper *wrapper, char *url, int flags, php_stream_statbuf *ssb, php_stream_context *context TSRMLS_DC)
 {
-    return 1;
+	char oid[PHP_RADOS_OID_NAME_MAX_LENGTH];
+	char pool[PHP_RADOS_POOL_NAME_MAX_LENGTH];
+	uint64_t psize;
+	uint64_t auid;
+	time_t pmtime;
+	rados_t cluster;
+	rados_ioctx_t ioctx;
+
+	rados_stream_parse_url(url, &pool, &oid);
+
+	rados_create(&cluster, NULL);
+	rados_conf_read_file(cluster, "/etc/ceph/ceph.conf");
+	rados_connect(cluster);
+
+	rados_ioctx_create(cluster, pool, &ioctx);
+
+	int r = -1;
+
+	r = rados_stat(ioctx, oid, &psize, &pmtime);
+
+	if (r > 0) {
+		rados_ioctx_pool_get_auid(ioctx, &auid);
+		ssb->sb.st_uid = auid;
+		ssb->sb.st_size = psize;
+		ssb->sb.st_mtime = pmtime;
+	}
+
+	rados_ioctx_destroy(ioctx);
+	rados_shutdown(cluster);
+
+    return r;
 }
 
 static int rados_wrapper_unlink(php_stream_wrapper *wrapper, char *url, int options, php_stream_context *context TSRMLS_DC)
@@ -1112,33 +1167,76 @@ static int rados_wrapper_rename(php_stream_wrapper *wrapper, char *url_from, cha
 
 static int rados_wrapper_mkdir(php_stream_wrapper *wrapper, char *url, int mode, int options, php_stream_context *context TSRMLS_DC) {
 	rados_t cluster;
-	int r = 0;
+	int r = 1;
+	char oid[PHP_RADOS_OID_NAME_MAX_LENGTH];
+	char pool[PHP_RADOS_POOL_NAME_MAX_LENGTH];
 
-	rados_create(&cluster, NULL);
-	rados_conf_read_file(cluster, "/etc/ceph/ceph.conf");
-	rados_connect(cluster);
-	r = rados_pool_create(cluster, url+(strlen(PHP_RADOS_STREAM_WRAPPER)+3));
-	rados_shutdown(cluster);
+	rados_stream_parse_url(url, &pool, &oid);
 
-	return r;
+	if (strlen(pool) == 0) {
+			return -255;
+	}
+
+	if (strlen(INI_STR("radosstream.id")) > 0) {
+		rados_create(&cluster, INI_STR("radosstream.id"));
+	} else {
+		rados_create(&cluster, NULL);
+	}
+
+	if (strlen(INI_STR("radosstream.conf")) > 0) {
+		rados_conf_read_file(cluster, INI_STR("radosstream.conf"));
+	}
+
+	if (strlen(INI_STR("radosstream.secret")) > 0) {
+		rados_conf_set(cluster, "keyring", INI_STR("radosstream.secret"));
+	}
+
+
+	if (rados_connect(cluster) >= 0) {
+		r = rados_pool_create(cluster, pool);
+		rados_shutdown(cluster);
+	} else {
+		return 0;
+	}
+
+	if (r < 0) {
+		return 0;
+	}
+
+	return 1;
 }
 
 static int rados_wrapper_rmdir(php_stream_wrapper *wrapper, char *url, int options, php_stream_context *context TSRMLS_DC) {
 	rados_t cluster;
-	int r = 0;
+	int r = 1;
+	char oid[PHP_RADOS_OID_NAME_MAX_LENGTH];
+	char pool[PHP_RADOS_POOL_NAME_MAX_LENGTH];
+
+	rados_stream_parse_url(url, &pool, &oid);
 
 	rados_create(&cluster, NULL);
-	rados_conf_read_file(cluster, "/etc/ceph/ceph.conf");
-	rados_connect(cluster);
-	r = rados_pool_delete(cluster, url+(strlen(PHP_RADOS_STREAM_WRAPPER)+3));
-	rados_shutdown(cluster);
+
+	if (strlen(INI_STR("radosstream.conf")) > 0) {
+		rados_conf_read_file(cluster, INI_STR("radosstream.conf"));
+	}
+
+	if (rados_connect(cluster) > 0) {
+		r = rados_pool_delete(cluster, pool);
+		rados_shutdown(cluster);
+	}
 
 	return r;
 }
 
 static php_stream* rados_wrapper_open_dir(php_stream_wrapper *wrapper, char *filename, char *mode, int options, char **opened_path, php_stream_context *context STREAMS_DC TSRMLS_DC) {
-	
+
 }
+
+PHP_INI_BEGIN()
+	PHP_INI_ENTRY("radosstream.id", "", PHP_INI_ALL, NULL)
+	PHP_INI_ENTRY("radosstream.secret", "", PHP_INI_ALL, NULL)
+	PHP_INI_ENTRY("radosstream.conf", "", PHP_INI_ALL, NULL)
+PHP_INI_END()
 
 PHP_MINIT_FUNCTION(rados)
 {
@@ -1147,12 +1245,18 @@ PHP_MINIT_FUNCTION(rados)
 
 	php_register_url_stream_wrapper(PHP_RADOS_STREAM_WRAPPER, &php_stream_rados_wrapper TSRMLS_CC);
 
+	REGISTER_INI_ENTRIES();
+
 	return SUCCESS;
 }
 
 PHP_MSHUTDOWN_FUNCTION(rados)
 {
 	php_unregister_url_stream_wrapper(PHP_RADOS_STREAM_WRAPPER TSRMLS_CC);
+
+	UNREGISTER_INI_ENTRIES();
+
+	return SUCCESS;
 }
 
 PHP_MINFO_FUNCTION(rados)
@@ -1170,24 +1274,26 @@ PHP_MINFO_FUNCTION(rados)
 	php_info_print_table_row(2, "Rados extension version", PHP_RADOS_EXTVER);
 	php_info_print_table_row(2, "librados version (linked)", linked_ver);
 	php_info_print_table_row(2, "librados version (compiled)", compiled_ver);
-	
+
 	sprintf(output_buf, "%d", PHP_RADOS_SNAP_NAME_MAX_LENGTH);
 	php_info_print_table_row(2, "Maximum length snapshot name", output_buf);
-	
+
 	sprintf(output_buf, "%d", PHP_RADOS_SNAP_MAX_NUM);
 	php_info_print_table_row(2, "Maximum snapshots per pool", output_buf);
 	php_info_print_table_end();
+
+	DISPLAY_INI_ENTRIES();
 }
 
 zend_module_entry rados_module_entry = {
 	STANDARD_MODULE_HEADER,
 	PHP_RADOS_EXTNAME,
-	rados_functions,       /* Functions */	
-	PHP_MINIT(rados),      /* MINIT */
-	NULL,                  /* MSHUTDOWN */
-	NULL,                  /* RINIT */
-	NULL,                  /* RSHUTDOWN */
-	PHP_MINFO(rados),      /* MINFO */
+	rados_functions,
+	PHP_MINIT(rados),
+	PHP_MSHUTDOWN(rados),
+	NULL,
+	NULL,
+	PHP_MINFO(rados),
 	PHP_RADOS_EXTVER,
 	STANDARD_MODULE_PROPERTIES
 };
