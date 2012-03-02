@@ -1029,12 +1029,130 @@ PHP_FUNCTION(rados_ioctx_snap_get_stamp) {
 	RETURN_LONG(time);
 }
 
+php_stream_ops rados_ops = {
+    rados_stream_write,
+    rados_stream_read,
+    rados_stream_close,
+    rados_stream_flush,
+    "RADOS stream",
+    rados_stream_seek,
+    NULL,
+    rados_stream_stat,
+    NULL,
+};
+
+php_stream_wrapper_ops rados_stream_wops = {
+    rados_wrapper_open_url,
+    NULL,
+    NULL,
+    rados_wrapper_stat,
+    rados_wrapper_open_dir,
+    PHP_RADOS_STREAM_WRAPPER,
+    rados_wrapper_unlink,
+    rados_wrapper_rename,
+    rados_wrapper_mkdir,
+    rados_wrapper_rmdir,
+};
+
+php_stream_wrapper php_stream_rados_wrapper = {
+    &rados_stream_wops,
+    NULL,
+    0
+};
+
+static php_stream * rados_wrapper_open_url(php_stream_wrapper *wrapper, char *path, char *mode, int options, char **opened_path, php_stream_context *context STREAMS_DC TSRMLS_DC)
+{
+
+}
+
+static int rados_stream_close(php_stream *stream, int close_handle TSRMLS_DC)
+{
+    return 0;
+}
+
+static size_t rados_stream_read(php_stream *stream, char *buf, size_t count TSRMLS_DC)
+{
+
+}
+
+static int rados_stream_seek(php_stream *stream, off_t offset, int whence, off_t *newoffset TSRMLS_DC)
+{
+    return 1;
+}
+
+static size_t rados_stream_write(php_stream *stream, const char *buf, size_t count TSRMLS_DC)
+{
+
+}
+
+static int rados_stream_flush(php_stream *stream TSRMLS_DC)
+{
+    return 1;
+}
+
+static int rados_stream_stat(php_stream *stream, php_stream_statbuf *ssb TSRMLS_DC)
+{
+    return 1;
+}
+
+static int rados_wrapper_stat(php_stream_wrapper *wrapper, char *url, int flags, php_stream_statbuf *ssb, php_stream_context *context TSRMLS_DC)
+{
+    return 1;
+}
+
+static int rados_wrapper_unlink(php_stream_wrapper *wrapper, char *url, int options, php_stream_context *context TSRMLS_DC)
+{
+    return 1;
+}
+
+static int rados_wrapper_rename(php_stream_wrapper *wrapper, char *url_from, char *url_to, int options, php_stream_context *context TSRMLS_DC)
+{
+    return 1;
+}
+
+static int rados_wrapper_mkdir(php_stream_wrapper *wrapper, char *url, int mode, int options, php_stream_context *context TSRMLS_DC) {
+	rados_t cluster;
+	int r = 0;
+
+	rados_create(&cluster, NULL);
+	rados_conf_read_file(cluster, "/etc/ceph/ceph.conf");
+	rados_connect(cluster);
+	r = rados_pool_create(cluster, url+(strlen(PHP_RADOS_STREAM_WRAPPER)+3));
+	rados_shutdown(cluster);
+
+	return r;
+}
+
+static int rados_wrapper_rmdir(php_stream_wrapper *wrapper, char *url, int options, php_stream_context *context TSRMLS_DC) {
+	rados_t cluster;
+	int r = 0;
+
+	rados_create(&cluster, NULL);
+	rados_conf_read_file(cluster, "/etc/ceph/ceph.conf");
+	rados_connect(cluster);
+	r = rados_pool_delete(cluster, url+(strlen(PHP_RADOS_STREAM_WRAPPER)+3));
+	rados_shutdown(cluster);
+
+	return r;
+}
+
+static php_stream* rados_wrapper_open_dir(php_stream_wrapper *wrapper, char *filename, char *mode, int options, char **opened_path, php_stream_context *context STREAMS_DC TSRMLS_DC) {
+	
+}
+
 PHP_MINIT_FUNCTION(rados)
 {
 	le_rados_cluster = zend_register_list_destructors_ex(NULL, NULL, PHP_RADOS_CLUSTER_RES_NAME, module_number);
 	le_rados_ioctx = zend_register_list_destructors_ex(NULL, NULL, PHP_RADOS_IOCTX_RES_NAME, module_number);
 
+	php_register_url_stream_wrapper(PHP_RADOS_STREAM_WRAPPER, &php_stream_rados_wrapper TSRMLS_CC);
+
 	return SUCCESS;
+}
+
+PHP_MSHUTDOWN_FUNCTION(rados)
+{
+	php_unregister_url_stream_wrapper(PHP_RADOS_STREAM_WRAPPER TSRMLS_CC);
 }
 
 PHP_MINFO_FUNCTION(rados)
