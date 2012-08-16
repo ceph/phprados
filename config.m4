@@ -14,7 +14,7 @@ if test $PHP_RADOS != "no"; then
 
     if test -z "$RADOS_DIR"; then
         AC_MSG_RESULT([not found])
-        AC_MSG_ERROR([Please reinstall the RADOS library from http://ceph.newdream.net])
+        AC_MSG_ERROR([Please reinstall the RADOS library from http://www.ceph.com])
     else
         PHP_ADD_LIBRARY_WITH_PATH(rados, $RADOS_DIR/$PHP_LIBDIR, RADOS_SHARED_LIBADD)
         PHP_ADD_INCLUDE($RADOS_DIR/include)
