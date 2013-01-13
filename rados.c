@@ -408,17 +408,17 @@ PHP_FUNCTION(rados_pool_list)
 
     ZEND_FETCH_RESOURCE(cluster_r, php_rados_cluster*, &zcluster, -1, PHP_RADOS_CLUSTER_RES_NAME, le_rados_cluster);
 
-    int buff_size = rados_pool_list(cluster_r->cluster, NULL, 0);
-    char buf[buff_size];
+    char buff[512];
+    int buff_size = rados_pool_list(cluster_r->cluster, buff, 0);
 
-    int r = rados_pool_list(cluster_r->cluster, buf, buff_size);
+    int r = rados_pool_list(cluster_r->cluster, buff, buff_size);
     if (r != buff_size) {
         php_error_docref(NULL TSRMLS_CC, E_WARNING, "Buffer size mismatch: Got %d, expected %d", r, buff_size);
         RETURN_FALSE;
     }
 
     array_init(return_value);
-    const char *b = buf;
+    const char *b = buff;
     while (1) {
         if (b[0] == '\0') {
             break;
