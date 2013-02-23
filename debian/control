@@ -3,7 +3,7 @@ Section: web
 Priority: extra
 Depends: php5-common, librados1, libceph1, libcrush1
 Maintainer: Wido den Hollander <wido@widodh.nl>
-Build-Depends: debhelper (>= 7), autotools-dev, php5-dev, librados1-dev, libceph1-dev, libcrush1
+Build-Depends: debhelper (>= 7), autotools-dev, php5-dev, librados-dev
 Homepage: http://ceph.newdream.net/
 
 Package: php5-rados
