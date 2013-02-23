@@ -20,22 +20,6 @@ if test $PHP_RADOS != "no"; then
         PHP_ADD_INCLUDE($RADOS_DIR/include)
     fi
 
-    AC_MSG_CHECKING([for libatomic-ops files (atomic_ops.h)])
-    for i in $PHP_RADOS /usr/local /usr; do
-        if test -r $i/include/atomic_ops.h; then
-            ATOMIC_DIR=$i
-            AC_MSG_RESULT(found in $i)
-            break
-        fi
-    done
-
-    if test -z "$ATOMIC_DIR"; then
-        AC_MSG_RESULT([not found])
-        AC_MSG_ERROR([Please reinstall the libatomic-ops library!])
-    else
-        PHP_ADD_INCLUDE($ATOMIC_DIR/include)
-    fi
-
     AC_MSG_CHECKING([for libSSL files (crypto.h)])
     for i in $PHP_RADOS /usr/local /usr; do
         if test -r $i/include/openssl/crypto.h; then
