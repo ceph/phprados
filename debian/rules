@@ -1,57 +1,26 @@
 #!/usr/bin/make -f
+
+# Uncomment this to turn on verbose mode..
 export DH_VERBOSE=1
 
-configure: configure-stamp
-configure-stamp:
-	dh_testdir
-	touch configure-stamp
-build: build-stamp
-build-stamp: configure-stamp
-	dh_testdir
+EXTN=rados
+BUILD=$(CURDIR)/debian/php5-$(EXTN)
+PHP_EX=$(shell /usr/bin/php-config5 --extension-dir)
+PHP_APIVER=$(shell /usr/bin/php-config5 --phpapi)
 
-	phpize
-	./configure
+include /usr/share/cdbs/1/rules/debhelper.mk
+include /usr/share/cdbs/1/class/autotools.mk
 
-	$(MAKE)
+DEB_CONFIGURE_EXTRA_FLAGS = --with-php-config=/usr/bin/php-config5
+DEB_MAKE_INSTALL_TARGET =
 
-	touch $@
-clean:
-	dh_testdir
-	dh_testroot
-	rm -fr build-stamp configure-stamp debian/php5-rados
+makebuilddir/php5-$(EXTN)::
+	[ -f configure ] || phpize5
 
-	test ! -f Makefile || $(MAKE) clean
+cleanbuilddir::
+	phpize5 --clean
 
-	phpize --clean
-
-	dh_clean
-install: build
-	dh_testdir
-	dh_testroot
-	dh_clean
-	dh_installdirs
-
-binary-indep: build install
-
-binary-arch: build install
-	dh_testdir
-	dh_testroot
-	mkdir -p debian/tmp
-	mkdir -p debian/tmp`php-config --extension-dir`
-	cp modules/rados.so debian/tmp`php-config --extension-dir`
-	mkdir -p debian/tmp/etc/php5/conf.d
-	echo "extension=rados.so" > debian/tmp/etc/php5/conf.d/rados.ini
-	dh_install
-	dh_lintian
-	dh_link
-	dh_strip
-	dh_compress
-	dh_fixperms
-	dh_makeshlibs -n
-	dh_installdeb
-	dh_shlibdeps
-	dh_gencontrol
-	dh_md5sums
-	dh_builddeb
-
-binary: binary-indep binary-arch
+install/php5-$(EXTN)::
+	install -D -m 644 modules/$(EXTN).so $(BUILD)$(PHP_EX)/$(EXTN).so
+	install -D -m 644 debian/$(EXTN).ini $(BUILD)/etc/php5/conf.d/$(EXTN).ini
+	echo "php:Depends=phpapi-$(PHP_APIVER)" >> $(BUILD).substvars
