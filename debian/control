@@ -2,7 +2,7 @@ Source: php5-rados
 Section: web
 Priority: extra
 Maintainer: Wido den Hollander <wido@widodh.nl>
-Build-Depends: debhelper (>= 7), autotools-dev, php5-dev, librados-dev
+Build-Depends: debhelper (>= 7), autotools-dev, php5-dev, cdbs, librados-dev
 Homepage: http://ceph.com/
 Vcs-Git: git://github.com/ceph/phprados.git
 Vcs-Browser: http://github.com/ceph/phprados
