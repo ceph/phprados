@@ -1,16 +1,17 @@
 Source: php5-rados
 Section: web
 Priority: extra
-Depends: php5-common, librados1, libceph1, libcrush1
 Maintainer: Wido den Hollander <wido@widodh.nl>
-Build-Depends: debhelper (>= 7), autotools-dev, php5-dev, librados1-dev, libceph1-dev, libcrush1
-Homepage: http://ceph.newdream.net/
+Build-Depends: debhelper (>= 7), autotools-dev, php5-dev, cdbs, librados-dev
+Homepage: http://ceph.com/
+Vcs-Git: git://github.com/ceph/phprados.git
+Vcs-Browser: http://github.com/ceph/phprados
 
 Package: php5-rados
 Architecture: any
-Depends: php5-common, librados1, libceph1, libcrush1
+Depends: ${shlibs:Depends}, ${misc:Depends}, ${php:Depends}
 Description: PHP extension for librados
  phprados is a PHP extension for librados, a distributed object store.
  .
  Librados is a part of the Ceph distributed filesystem,
- for more information visit http://ceph.newdream.net/
+ for more information visit http://ceph.com/
