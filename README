@@ -13,6 +13,8 @@ For a full overview of the available functions, open a terminal and run:
 
 $ php --re rados
 
+Real code examples can be taken from the Unit tests.
+
 ** SOURCES **
 Articles used for this extension:
 * http://devzone.zend.com/article/1021
@@ -29,3 +31,15 @@ Need libraries (Ubuntu / Debian):
 phprados comes as it is, but there could always be bugs or issues.
 
 For questions, please visit Ceph's IRC channel (#ceph on irc.oftc.net) or contact the maintainers directly.
+
+** UNIT TESTING **
+Unit tests are available in the "test" directory.
+
+These tests are all written for PHPUnit and require PHPUnit to be installed.
+
+This can be done using PEAR:
+$ pear config-set auto_discover 1
+$ pear install pear.phpunit.de/PHPUnit
+
+Running the tests is simple:
+$ phpunit
