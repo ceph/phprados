@@ -70,7 +70,7 @@ class RadosTest extends PHPUnit_Framework_TestCase {
      * @depends testRadosConnect
      */
     public function testRadosPoolList($cluster) {
-        $this->assertTrue(rados_pool_list($cluster));
+        $this->assertNotNull(rados_pool_list($cluster));
     }
 
     /**
