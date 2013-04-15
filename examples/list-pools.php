@@ -8,6 +8,6 @@ foreach (rados_pool_list($rados) as $pool) {
     echo $pool."\n";
 }
 
-rados_destroy($rados);
+rados_shutdown($rados);
 
 ?>
