@@ -16,7 +16,7 @@ Add "extension=rados.so" to your php.ini
 
 On Debian/Ubuntu systems:
 
-$ echo "extension=rados.so" > /etc/php5/conf.d/php.ini
+$ echo "extension=rados.so" > /etc/php5/conf.d/rados.ini
 
 4. Verify the extension is loaded
 Run a phpinfo(); this should show the RADOS extension being loaded
