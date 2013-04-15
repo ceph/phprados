@@ -9,6 +9,7 @@
 #include "zend_exceptions.h"
 #include "ext/standard/info.h"
 #include "rados/librados.h"
+#include <stdbool.h>
 #ifdef ZTS
 #include "TSRM.h"
 #endif
@@ -22,6 +23,7 @@
 
 typedef struct _php_rados_cluster {
     rados_t cluster;
+    bool connected;
 } php_rados_cluster;
 
 typedef struct _php_rados_ioctx {

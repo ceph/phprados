@@ -243,6 +243,17 @@ const zend_function_entry rados_functions[] = {
     {NULL, NULL, NULL}
 };
 
+/* Prevent us from calling functions when not connected or vise-versa */
+static void verifyConnectionState(bool state, bool required_state) {
+    if (state && !required_state) {
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "This function can't be called in a connected state");
+    }
+
+    if (!state && required_state) {
+        php_error_docref(NULL TSRMLS_CC, E_ERROR, "This function can't be called when not connected");
+    }
+}
+
 /* librados C API */
 PHP_FUNCTION(rados_create)
 {
@@ -261,6 +272,7 @@ PHP_FUNCTION(rados_create)
 
     cluster_r = (php_rados_cluster *)emalloc(sizeof(php_rados_cluster));
     cluster_r->cluster = cluster;
+    cluster_r->connected = false;
     ZEND_REGISTER_RESOURCE(return_value, cluster_r, le_rados_cluster);
 }
 
@@ -276,6 +288,7 @@ PHP_FUNCTION(rados_shutdown)
     ZEND_FETCH_RESOURCE(cluster_r, php_rados_cluster*, &zcluster, -1, PHP_RADOS_CLUSTER_RES_NAME, le_rados_cluster);
 
     rados_shutdown(cluster_r->cluster);
+    cluster_r->connected = false;
 
     RETURN_TRUE;
 }
@@ -295,6 +308,8 @@ PHP_FUNCTION(rados_connect)
         RETURN_FALSE;
     }
 
+    cluster_r->connected = true;
+
     RETURN_TRUE;
 }
 
@@ -310,6 +325,8 @@ PHP_FUNCTION(rados_conf_read_file)
     }
 
     ZEND_FETCH_RESOURCE(cluster_r, php_rados_cluster*, &zcluster, -1, PHP_RADOS_CLUSTER_RES_NAME, le_rados_cluster);
+
+    verifyConnectionState(cluster_r->connected, false);
 
     if (rados_conf_read_file(cluster_r->cluster, path) < 0) {
         RETURN_FALSE;
@@ -330,6 +347,8 @@ PHP_FUNCTION(rados_conf_set)
     }
 
     ZEND_FETCH_RESOURCE(cluster_r, php_rados_cluster*, &zcluster, -1, PHP_RADOS_CLUSTER_RES_NAME, le_rados_cluster);
+
+    verifyConnectionState(cluster_r->connected, false);
 
     if (rados_conf_set(cluster_r->cluster, option, value) < 0) {
         RETURN_FALSE;
@@ -374,6 +393,8 @@ PHP_FUNCTION(rados_ioctx_create)
 
     ZEND_FETCH_RESOURCE(cluster_r, php_rados_cluster*, &zcluster, -1, PHP_RADOS_CLUSTER_RES_NAME, le_rados_cluster);
 
+    verifyConnectionState(cluster_r->connected, true);
+
     if (rados_ioctx_create(cluster_r->cluster, pool, &io) < 0) {
         RETURN_FALSE;
     }
@@ -407,6 +428,8 @@ PHP_FUNCTION(rados_pool_list)
     }
 
     ZEND_FETCH_RESOURCE(cluster_r, php_rados_cluster*, &zcluster, -1, PHP_RADOS_CLUSTER_RES_NAME, le_rados_cluster);
+
+    verifyConnectionState(cluster_r->connected, true);
 
     char temp_buff[256];
     int buff_size = rados_pool_list(cluster_r->cluster, temp_buff, 0);
@@ -442,6 +465,8 @@ PHP_FUNCTION(rados_pool_lookup)
     }
 
     ZEND_FETCH_RESOURCE(cluster_r, php_rados_cluster*, &zcluster, -1, PHP_RADOS_CLUSTER_RES_NAME, le_rados_cluster);
+
+    verifyConnectionState(cluster_r->connected, true);
 
     if (rados_pool_lookup(cluster_r->cluster, pool) < 0) {
         RETURN_FALSE;
@@ -493,6 +518,8 @@ PHP_FUNCTION(rados_pool_create)
 
     ZEND_FETCH_RESOURCE(cluster_r, php_rados_cluster*, &zcluster, -1, PHP_RADOS_CLUSTER_RES_NAME, le_rados_cluster);
 
+    verifyConnectionState(cluster_r->connected, true);
+
     int r;
     if ((auid != NULL) && (crushrule != NULL)) {
         r = rados_pool_create_with_all(cluster_r->cluster, pool, auid, crushrule);
@@ -523,6 +550,8 @@ PHP_FUNCTION(rados_pool_delete)
     }
 
     ZEND_FETCH_RESOURCE(cluster_r, php_rados_cluster*, &zcluster, -1, PHP_RADOS_CLUSTER_RES_NAME, le_rados_cluster);
+
+    verifyConnectionState(cluster_r->connected, true);
 
     if (rados_pool_delete(cluster_r->cluster, pool) < 0) {
         RETURN_FALSE;
