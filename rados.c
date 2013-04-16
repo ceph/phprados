@@ -98,9 +98,10 @@ ZEND_BEGIN_ARG_INFO(arginfo_rados_write_full, 0)
     ZEND_ARG_INFO(0, buffer)
 ZEND_END_ARG_INFO()
 
-ZEND_BEGIN_ARG_INFO_EX(arginfo_rados_read, 0, 0, 2)
+ZEND_BEGIN_ARG_INFO_EX(arginfo_rados_read, 0, 0, 3)
     ZEND_ARG_INFO(0, ioctx)
     ZEND_ARG_INFO(0, oid)
+    ZEND_ARG_INFO(0, size)
     ZEND_ARG_INFO(0, offset)
 ZEND_END_ARG_INFO()
 
