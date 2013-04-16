@@ -60,6 +60,38 @@ class RadosTest extends PHPUnit_Framework_TestCase {
     }
 
     /**
+     * @depends testRadosCreateIoCTX
+     */
+    public function testRadosWrite($ioctx) {
+        $oid = md5(rand(0,9999999999));
+        $buf = sha1($oid);
+        $r = rados_write($ioctx, $oid, $buf, 0);
+        $this->assertTrue($r);
+        $info = array();
+        $info['oid'] = $oid;
+        $info['buf'] = $buf;
+        $info['ioctx'] = $ioctx;
+        return $info;
+    }
+
+    /**
+     * @depends testRadosWrite
+     */
+    public function testRadosRead($info) {
+        $buf = rados_read($info['ioctx'], $info['oid'], strlen($info['buf']));
+        $this->assertEquals($buf, $info['buf']);
+        return $info;
+    }
+
+    /**
+     * @depends testRadosRead
+     */
+    public function testRadosRemove($info) {
+        $r = rados_remove($info['ioctx'], $info['oid']);
+        $this->assertTrue($r);
+    }
+
+    /**
      * @depends testRadosCreatePool
      */
     public function testRadosDeletePool($cluster) {
