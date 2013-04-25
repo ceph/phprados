@@ -6,8 +6,6 @@ The extension wraps the C API of librados into a extension, where almost all the
 ** LIMITATIONS **
 The extension should work on both 32 and 64-bit systems, but due to PHP's engine it might now work well with very large objects.
 
-Also, the selfmanaged snapshots are not implemented in the extension since their usage is pretty rare.
-
 ** METHODS / FUNCTIONS **
 For a full overview of the available functions, open a terminal and run:
 
@@ -23,7 +21,7 @@ Articles used for this extension:
 * http://devzone.zend.com/article/4486-Wrapping-C-Classes-in-a-PHP-Extension
 
 ** DEPENDENCIES **
-Need libraries (Ubuntu / Debian):
+Required libraries for Ubuntu or Debian:
 * libatomic-ops-dev (Needed for librados)
 * librados2(-dev)
 
@@ -42,4 +40,7 @@ $ pear config-set auto_discover 1
 $ pear install pear.phpunit.de/PHPUnit
 
 Running the tests is simple:
+export id="admin"
+export key="your-key-found-in-your-ceph.conf"
+export mon_host="ip-of-your-monitor-host"
 $ phpunit
