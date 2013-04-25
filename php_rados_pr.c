@@ -488,7 +488,7 @@ PHP_FUNCTION(rados_pool_create)
     int auid = NULL;
     int crushrule = NULL;
     int pool_len = 0;
-    long option;
+    ulong option;
     HashPosition pos;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs|a", &zcluster, &pool, &pool_len, &options) == FAILURE) {
@@ -874,13 +874,20 @@ PHP_FUNCTION(rados_getxattrs) {
     while (1) {
         const char *name;
         const char *val;
+        char *value;
         size_t len;
 
         rados_getxattrs_next(iter, &name, &val, &len);
         if (name == NULL) {
             break;
         }
-        add_assoc_stringl_ex(return_value, name, strlen(name)+1, val, len, 1);
+
+		// Some tricks to convert const char *val to char *val and pass it to add_assoc_string_ex
+		size_t length = strlen(val) + 1;
+		char buffer[length]; 
+		memcpy(buffer, val , length); 
+        
+        add_assoc_stringl_ex(return_value, name, strlen(name)+1, buffer, len, 1);
     }
     rados_getxattrs_end(iter);
 }
@@ -1059,59 +1066,3 @@ PHP_FUNCTION(rados_ioctx_snap_get_stamp) {
 
     RETURN_LONG(time);
 }
-
-PHP_MINIT_FUNCTION(rados)
-{
-    le_rados_cluster = zend_register_list_destructors_ex(NULL, NULL, PHP_RADOS_CLUSTER_RES_NAME, module_number);
-    le_rados_ioctx = zend_register_list_destructors_ex(NULL, NULL, PHP_RADOS_IOCTX_RES_NAME, module_number);
-
-    return SUCCESS;
-}
-
-PHP_MSHUTDOWN_FUNCTION(rados)
-{
-    return SUCCESS;
-}
-
-PHP_MINFO_FUNCTION(rados)
-{
-    int major, minor, extra = 0;
-    char compiled_ver[16], linked_ver[16], output_buf[8];
-
-    rados_version(&major, &minor, &extra);
-
-    sprintf(linked_ver, "%d.%d.%d", LIBRADOS_VER_MAJOR, LIBRADOS_VER_MINOR, LIBRADOS_VER_EXTRA);
-    sprintf(compiled_ver, "%d.%d.%d", major, minor, extra);
-
-    php_info_print_table_start();
-    php_info_print_table_row(2, "Rados", "enabled");
-    php_info_print_table_row(2, "Rados extension version", PHP_RADOS_EXTVER);
-    php_info_print_table_row(2, "librados version (linked)", linked_ver);
-    php_info_print_table_row(2, "librados version (compiled)", compiled_ver);
-
-    sprintf(output_buf, "%d", PHP_RADOS_SNAP_NAME_MAX_LENGTH);
-    php_info_print_table_row(2, "Maximum length snapshot name", output_buf);
-
-    sprintf(output_buf, "%d", PHP_RADOS_SNAP_MAX_NUM);
-    php_info_print_table_row(2, "Maximum snapshots per pool", output_buf);
-    php_info_print_table_end();
-
-    DISPLAY_INI_ENTRIES();
-}
-
-zend_module_entry rados_module_entry = {
-    STANDARD_MODULE_HEADER,
-    PHP_RADOS_EXTNAME,
-    rados_functions,
-    PHP_MINIT(rados),
-    PHP_MSHUTDOWN(rados),
-    NULL,
-    NULL,
-    PHP_MINFO(rados),
-    PHP_RADOS_EXTVER,
-    STANDARD_MODULE_PROPERTIES
-};
-
-#ifdef COMPILE_DL_RADOS
-ZEND_GET_MODULE(rados)
-#endif
