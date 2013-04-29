@@ -30,7 +30,7 @@ zend_class_entry *rados_ce;
 
 void rados_free_storage(void *object TSRMLS_DC) {
     rados_object *obj = (rados_object *)object;
-    delete obj->rados; 
+    delete obj->rados;
 
     zend_hash_destroy(obj->std.properties);
     FREE_HASHTABLE(obj->std.properties);
@@ -58,11 +58,11 @@ zend_object_value rados_create_handler(zend_class_entry *type TSRMLS_DC) {
 }
 
 PHP_METHOD(Rados, __construct) {
-	char *configname;
-	int configname_len;
-	char *poolname;
-	int poolname_len;
-	
+    char *configname;
+    int configname_len;
+    char *poolname;
+    int poolname_len;
+
     Rados *rados = NULL;
     zval *object = getThis();
     rados = new Rados();
@@ -71,7 +71,7 @@ PHP_METHOD(Rados, __construct) {
 }
 
 PHP_METHOD(Rados, __destruct) {
-	Rados *rados;
+    Rados *rados;
     rados_object *obj = (rados_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
     rados = obj->rados;
     if (rados != NULL) {
@@ -80,14 +80,14 @@ PHP_METHOD(Rados, __destruct) {
 }
 
 PHP_METHOD(Rados, connect) {
-	Rados *rados;
-	char *poolname;
-	int poolname_len;
-	
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s",  &poolname, &poolname_len) == FAILURE) {
+    Rados *rados;
+    char *poolname;
+    int poolname_len;
+
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s",  &poolname, &poolname_len) == FAILURE) {
         RETURN_NULL();
     }
-    
+
     rados_object *obj = (rados_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
     rados = obj->rados;
     if (rados != NULL) {
@@ -96,37 +96,37 @@ PHP_METHOD(Rados, connect) {
 }
 
 PHP_METHOD(Rados, readconfig) {
-	char *filename;
-	int filename_len;
-	
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s",  &filename, &filename_len) == FAILURE) {
+    char *filename;
+    int filename_len;
+
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s",  &filename, &filename_len) == FAILURE) {
         RETURN_NULL();
     }
-    
-	Rados *rados;
+
+    Rados *rados;
     rados_object *obj = (rados_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
     rados = obj->rados;
-    
+
     if (rados != NULL) {
         RETURN_BOOL(rados->readConfig(filename));
     }
 }
 
 PHP_METHOD(Rados, write) {
-	char *key;
-	int key_len;
+    char *key;
+    int key_len;
 
-	char *value;
-	size_t value_len;
+    char *value;
+    size_t value_len;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ss|l",  &key, &key_len, &value, &value_len) == FAILURE) {
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ss|l",  &key, &key_len, &value, &value_len) == FAILURE) {
         RETURN_NULL();
     }
-    
-	Rados *rados;
+
+    Rados *rados;
     rados_object *obj = (rados_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
     rados = obj->rados;
-    
+
     if (rados != NULL) {
         RETURN_BOOL(rados->write(key, value, value_len));
     }
@@ -134,23 +134,22 @@ PHP_METHOD(Rados, write) {
 
 
 PHP_METHOD(Rados, read) {
-	char *key;
-	int key_len;
-	size_t buffer_len;
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s",  &key, &key_len) == FAILURE) {
+    char *key;
+    int key_len;
+    size_t buffer_len;
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s",  &key, &key_len) == FAILURE) {
         RETURN_NULL();
     }
-    
-	Rados *rados;
+
+    Rados *rados;
     rados_object *obj = (rados_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
     rados = obj->rados;
-    
+
     if (rados != NULL) {
-		buffer_len = rados->getSize(key);
-		//fprintf(stderr, "Size: %d", buffer_len);
-		char buffer[buffer_len];
-		rados->read(key, buffer, buffer_len);
-		RETURN_STRINGL(buffer, buffer_len, 1);
+        buffer_len = rados->getSize(key);
+        char buffer[buffer_len];
+        rados->read(key, buffer, buffer_len);
+        RETURN_STRINGL(buffer, buffer_len, 1);
     }
 }
 

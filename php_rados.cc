@@ -10,7 +10,7 @@
  * Foundation.  See file COPYING.
  *
  */
- 
+
 /**
  * This file serves as an entry point for the extension.
  * It includes the procedural and object-oriented code as if enabled
@@ -22,33 +22,32 @@
 
 // Definitions for the procedural interface
 #ifdef BUILD_PROCEDURAL
-	#include "php_rados_pr.h"
-	#include "php_rados_pr.c"
+    #include "php_rados_pr.h"
+    #include "php_rados_pr.c"
 #endif
 
 // Definitions for the OO interface
 #ifdef BUILD_OO
-	#include "php_rados_oo.h"
-	#include "php_rados_oo.cc"
+    #include "php_rados_oo.h"
+    #include "php_rados_oo.cc"
 #endif
 
 PHP_MINIT_FUNCTION(rados)
 {
-	#ifdef BUILD_PROCEDURAL
-		le_rados_cluster = zend_register_list_destructors_ex(NULL, NULL, PHP_RADOS_CLUSTER_RES_NAME, module_number);
-		le_rados_ioctx = zend_register_list_destructors_ex(NULL, NULL, PHP_RADOS_IOCTX_RES_NAME, module_number);
-	#endif
-	
-	#ifdef BUILD_OO
-		zend_class_entry ce;
-		INIT_CLASS_ENTRY(ce, "Rados", rados_methods);
-		rados_ce = zend_register_internal_class(&ce TSRMLS_CC);
-		rados_ce->create_object = rados_create_handler;
-		memcpy(&rados_object_handlers,
-			zend_get_std_object_handlers(), sizeof(zend_object_handlers));
-		rados_object_handlers.clone_obj = NULL;
-	#endif
-	
+    #ifdef BUILD_PROCEDURAL
+        le_rados_cluster = zend_register_list_destructors_ex(NULL, NULL, PHP_RADOS_CLUSTER_RES_NAME, module_number);
+        le_rados_ioctx = zend_register_list_destructors_ex(NULL, NULL, PHP_RADOS_IOCTX_RES_NAME, module_number);
+    #endif
+
+    #ifdef BUILD_OO
+        zend_class_entry ce;
+        INIT_CLASS_ENTRY(ce, "Rados", rados_methods);
+        rados_ce = zend_register_internal_class(&ce TSRMLS_CC);
+        rados_ce->create_object = rados_create_handler;
+        memcpy(&rados_object_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
+        rados_object_handlers.clone_obj = NULL;
+    #endif
+
     return SUCCESS;
 }
 
@@ -73,18 +72,18 @@ PHP_MINFO_FUNCTION(rados)
     php_info_print_table_row(2, "librados version (linked)", linked_ver);
     php_info_print_table_row(2, "librados version (compiled)", compiled_ver);
 
-	#ifdef BUILD_PROCEDURAL
-		php_info_print_table_row(2, "Procedural interface", "enabled");
-	#else
-		php_info_print_table_row(2, "Procedural interface", "disabled");
-	#endif
+    #ifdef BUILD_PROCEDURAL
+        php_info_print_table_row(2, "Procedural interface", "enabled");
+    #else
+        php_info_print_table_row(2, "Procedural interface", "disabled");
+    #endif
 
-	#ifdef BUILD_OO
-		php_info_print_table_row(2, "Object oriented interface", "enabled");
-	#else
-		php_info_print_table_row(2, "Object oriented interface", "disabled");
-	#endif
-	
+    #ifdef BUILD_OO
+        php_info_print_table_row(2, "Object oriented interface", "enabled");
+    #else
+        php_info_print_table_row(2, "Object oriented interface", "disabled");
+    #endif
+
     sprintf(output_buf, "%d", PHP_RADOS_SNAP_NAME_MAX_LENGTH);
     php_info_print_table_row(2, "Maximum length snapshot name", output_buf);
 
@@ -99,10 +98,10 @@ zend_module_entry rados_module_entry = {
     STANDARD_MODULE_HEADER,
     PHP_RADOS_EXTNAME,
     #ifdef BUILD_PROCEDURAL
-		rados_functions,	/* Functions */
-	#else	
-		NULL,				/* No functions */
-	#endif
+        rados_functions,	/* Functions */
+    #else
+        NULL,				/* No functions */
+    #endif
     PHP_MINIT(rados),       /* MINIT */
     PHP_MSHUTDOWN(rados),	/* MSHUTDOWN */
     NULL,					/* RINIT */
