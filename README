@@ -32,6 +32,12 @@ phprados comes as it is, but there could always be bugs or issues.
 
 For questions, please visit Ceph's IRC channel (#ceph on irc.oftc.net) or contact the maintainers directly.
 
+** EXAMPLES **
+There is an examples directory which contains some examples.
+
+You probably want to look at the unit tests though, since they will be well
+maintained.
+
 ** UNIT TESTING **
 Unit tests are available in the "test" directory.
 
