@@ -39,7 +39,7 @@ class RadosTest extends PHPUnit_Framework_TestCase {
 
 	
 	/**
-      * This test connect to the environment variable 'mon_host' with they key 'key'
+      * This test connects to the environment variable 'mon_host' with they key 'key'
       *
       * @depends testRadosCreateObject
      */	
@@ -53,17 +53,33 @@ class RadosTest extends PHPUnit_Framework_TestCase {
 
         return $object;
     }
+
+	/**
+      * This test connects to the environment variable 'mon_host' with they key 'key'
+      * using the short hand method of connect. Also selects pool $pool as it's pool.
+      *
+      * @depends testRadosCreatePool
+     */	
+	public function testRadosConnectShortHand($object) {
+		
+		$host = getenv('mon_host');
+		$key  = getenv('mon_host');
+		$pool = "oounittest";
+		
+		$conn = $object->connect($host, $key, $pool);
+
+        $this->assertTrue($conn);
+
+        return $object;
+    }
     
     /**
       * This test creates a pool
       *
-      * @depends testRadosCreateObject
+      * @depends testRadosConnect
      */	
 	public function testRadosCreatePool($object) {
 		
-		$object->setOption("mon_host", getenv('mon_host'));
-		$object->setOption("key", getenv('key'));
-		$conn = $object->connect();
 		$result = $object->createPool("oounittest");
 		
         $this->assertTrue($result);
@@ -78,9 +94,6 @@ class RadosTest extends PHPUnit_Framework_TestCase {
      */	
 	public function testRadosDestroyPool($object) {
 		
-		$object->setOption("mon_host", getenv('mon_host'));
-		$object->setOption("key", getenv('key'));
-		$conn = $object->connect();
 		$result = $object->destroyPool("oounittest");
 		
         $this->assertTrue($result);
