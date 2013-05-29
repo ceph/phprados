@@ -16,5 +16,5 @@
 	print __LINE__."\tConnect to the cluster\n";
 	$rados->connect();
 	
-	print __LINE__."\Select a pool 'example'\n";
-	$rados->selectPool("example");
+	print __LINE__."\tSelect a pool 'example'\n";
+	$rados->selectPool("phprados");

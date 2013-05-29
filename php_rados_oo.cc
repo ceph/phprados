@@ -28,6 +28,19 @@ struct rados_object {
 
 zend_class_entry *rados_ce;
 
+/*
+ * Helper function to validate a result returned from the Rados object.
+ * In case of an error, show it as PHP Warning.
+ */
+int validateReturn(int err, Rados *rados) {
+    if (!err) {
+        php_error_docref(NULL TSRMLS_CC, E_WARNING, rados->lastErrorMessage);
+        return false;
+    } else {
+        return true;
+    }
+}
+
 void rados_free_storage(void *object TSRMLS_DC) {
     rados_object *obj = (rados_object *)object;
     delete obj->rados; 
@@ -120,8 +133,6 @@ PHP_METHOD(Rados, getOption) {
     }
 }
 
-
-
 PHP_METHOD(Rados, connect) {
 	Rados *rados;
 	int err;
@@ -150,7 +161,7 @@ PHP_METHOD(Rados, connect) {
 		if (key != NULL) {
 			err = rados->setOption("key", key);
 			if (!err) {
-				php_error_docref(NULL TSRMLS_CC, E_WARNING, rados->lastErrorMessage);
+                php_error_docref(NULL TSRMLS_CC, E_WARNING, rados->lastErrorMessage);
 				RETURN_BOOL(false);
 			}
 		}
@@ -164,16 +175,18 @@ PHP_METHOD(Rados, connect) {
 		if (poolname != NULL) {
 			err = rados->selectPool(poolname);
 			if (!err) {
+                fprintf(stderr, "4\n");
 				php_error_docref(NULL TSRMLS_CC, E_WARNING, rados->lastErrorMessage);
 				RETURN_BOOL(false);
 			}
 		}
 		RETURN_BOOL(true);
     }
+    
+    RETURN_BOOL(false);
 }
 
 PHP_METHOD(Rados, readConfig) {
-	int err;
 	char *filename;
 	int filename_len;
 	
@@ -186,18 +199,13 @@ PHP_METHOD(Rados, readConfig) {
     rados = obj->rados;
     
     if (rados != NULL) {
-		err = rados->readConfig(filename);
-		if (!err) {
-			php_error_docref(NULL TSRMLS_CC, E_WARNING, rados->lastErrorMessage);
-			RETURN_BOOL(false);
-		} else {
-			RETURN_BOOL(true);
-		}
+        RETURN_BOOL(validateReturn(rados->readConfig(filename), rados));
     }
+    
+    RETURN_BOOL(false);
 }
 
 PHP_METHOD(Rados, createPool) {
-	int err;
 	Rados *rados;
 	char *poolname;
 	int poolname_len;
@@ -209,13 +217,7 @@ PHP_METHOD(Rados, createPool) {
     rados_object *obj = (rados_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
     rados = obj->rados;
     if (rados != NULL) {
-        err = rados->createPool(poolname);
-   		if (!err) {
-			php_error_docref(NULL TSRMLS_CC, E_WARNING, rados->lastErrorMessage);
-			RETURN_BOOL(false);
-		} else {
-			RETURN_BOOL(true);
-		}
+        RETURN_BOOL(validateReturn(rados->createPool(poolname), rados));    
     }
 }
 
@@ -231,7 +233,7 @@ PHP_METHOD(Rados, destroyPool) {
     rados_object *obj = (rados_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
     rados = obj->rados;
     if (rados != NULL) {
-        RETURN_BOOL(rados->destroyPool(poolname));
+        RETURN_BOOL(validateReturn(rados->destroyPool(poolname), rados));
     }
 }
 
@@ -247,7 +249,7 @@ PHP_METHOD(Rados, selectPool) {
     rados_object *obj = (rados_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
     rados = obj->rados;
     if (rados != NULL) {
-        RETURN_BOOL(rados->selectPool(poolname));
+        RETURN_BOOL(validateReturn(rados->selectPool(poolname), rados));
     }
 }
 
@@ -269,9 +271,7 @@ PHP_METHOD(Rados, write) {
     rados = obj->rados;
     
     if (rados != NULL) {
-        RETURN_BOOL(rados->write(key, value, value_len));
-        //rados->write(key, value, value_len);
-        fprintf(stderr, "Going back to PHP\n");
+        RETURN_BOOL(validateReturn(rados->write(key, value, value_len), rados));
     }
 }
 

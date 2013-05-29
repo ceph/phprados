@@ -8,8 +8,8 @@
 	print __LINE__."\tConnect to the cluster\n";
 	$rados->connect();
 		
-	print __LINE__."\tSelect pool 'example'\n";        
-    $rados->selectPool('example');
+	print __LINE__."\tSelect pool 'phprados'\n";        
+    $rados->selectPool("phprados");
     
 	print __LINE__."\tWrite some data...'\n";
 	$rados->write("unique-id","Some random data\n");

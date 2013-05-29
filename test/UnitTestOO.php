@@ -14,11 +14,14 @@
 
 class RadosTest extends PHPUnit_Framework_TestCase {
 	
+	/**
+      * Test if it's possible to create a Rados object
+     */    
 	public function testRadosCreateObject() {
 		$object = new Rados();
 		$this->assertNotNull($object);
-		
-		return $object;
+        
+        return $object;
 	}
 	
 	    
@@ -45,8 +48,8 @@ class RadosTest extends PHPUnit_Framework_TestCase {
      */	
 	public function testRadosConnect($object) {
 		
-		$object->setOption("mon_host", getenv('mon_host'));
-		$object->setOption("key", getenv('key'));
+		$object->setOption('mon_host', getenv('mon_host'));
+		$object->setOption('key', getenv('key'));
 		$conn = $object->connect();
 
         $this->assertTrue($conn);
@@ -57,20 +60,16 @@ class RadosTest extends PHPUnit_Framework_TestCase {
 	/**
       * This test connects to the environment variable 'mon_host' with they key 'key'
       * using the short hand method of connect. Also selects pool $pool as it's pool.
-      *
-      * @depends testRadosCreatePool
-     */	
-	public function testRadosConnectShortHand($object) {
-		
+      *      
+      */	
+	public function testRadosConnectShortHand() {
 		$host = getenv('mon_host');
-		$key  = getenv('mon_host');
-		$pool = "oounittest";
+		$key  = getenv('key');
 		
-		$conn = $object->connect($host, $key, $pool);
+        $object = new Rados();
+		$conn = $object->connect($host, $key);
 
         $this->assertTrue($conn);
-
-        return $object;
     }
     
     /**
@@ -80,7 +79,22 @@ class RadosTest extends PHPUnit_Framework_TestCase {
      */	
 	public function testRadosCreatePool($object) {
 		
-		$result = $object->createPool("oounittest");
+		$result = $object->createPool('oounittest');
+		
+        $this->assertTrue($result);
+
+        return $object;
+    }
+
+
+    /**
+      * This test selects a pool
+      *
+      * @depends testRadosCreatePool
+     */	
+	public function testRadosSelectPool($object) {
+		
+		$result = $object->selectPool('oounittest');
 		
         $this->assertTrue($result);
 
@@ -88,20 +102,47 @@ class RadosTest extends PHPUnit_Framework_TestCase {
     }
 
     /**
-      * This test removes a pool
+      * This test writes data to the pool oounittest
       *
-      * @depends testRadosCreatePool
+      * @depends testRadosSelectPool
      */	
-	public function testRadosDestroyPool($object) {
+	public function testRadosWriteData($object) {
 		
-		$result = $object->destroyPool("oounittest");
+		$result = $object->write('unique-id','test_datum');
 		
         $this->assertTrue($result);
 
         return $object;
     }
     
-    
+    /**
+      * This test reads data from the pool oounittest
+      *
+      * @depends testRadosWriteData
+     */	
+	public function testRadosReadData($object) {
+		
+		$data = $object->read("unique-id");
+		
+        $this->assertEquals("test_datum", $data);
+        
+        return $object;
+    }
+
+    /**
+      * This test removes a pool
+      *
+      * @depends testRadosReadData
+     */	
+	public function testRadosDestroyPool($object) {
+		
+		$result = $object->destroyPool('oounittest');
+		
+        $this->assertTrue($result);
+
+        return $object;
+    }
+
 }
 
 ?>

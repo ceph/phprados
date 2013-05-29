@@ -103,12 +103,16 @@ int Rados::getOption(char *option, char *value) {
 int Rados::readConfig(char *filename) {
 	int err;
 	err = rados_conf_read_file(this->cluster, filename);
-	
+
 	if (err < 0) {
-			fprintf(stderr, "%s: cannot read config file: %s\n", filename, strerror(-err));
-			return false;
+        char error[1024];
+        snprintf ( error, 1024, "Invalid configuration file %s", filename);
+        this->setError(err, error);
+        return false;
 	}
 	
+    this->hasKey = true;
+    this->hasMonitor = true;
 	this->isReadyForConnect = true;
 	
 	return true;
@@ -130,8 +134,17 @@ int Rados::connect() {
 	if (this->isConnected != true) {
 		err = rados_connect(this->cluster);
 		if (err < 0) {
-			this->setError(err, strerror(-err));
-			return false;
+            if (err == -1) {
+                this->setError(err, "Authentication failure, verify authentication key.\n");
+			} else if (err == -2) {
+                this->setError(err, "Can't correctly read configuration or keyring file.\n");
+			} else if (err == -22) {
+                this->setError(err, "Invalid connection parameters provided.\n");
+            } else {
+                //fprintf(stderr, "Unknown error: %d (%s)\n", err, strerror(-err));
+                this->setError(err, "Unknown error occurred.\n");            
+            }
+            return false;
 		}
 		this->isConnected = true;
 	}
@@ -146,11 +159,17 @@ int Rados::connect() {
  */
 int Rados::selectPool(char *poolname) {
 	int err;
-	// TODO: Verify if the pool we try to connect to exists!
+    
+    if (!this->isConnected) {
+        this->setError(0, "Not connected to any cluster.\n");
+        return false;
+    }
 	
-	err = rados_ioctx_create(this->cluster, poolname, &this->io);
+    err = rados_ioctx_create(this->cluster, poolname, &this->io);
 	if (err < 0) {
-        fprintf(stderr, "Cannot open rados pool %s: %s\n", poolname, strerror(-err));
+        char error[1024];
+        snprintf (error, 1024, "Failed to select pool '%s'. %s.\n", poolname, strerror(-err));
+        this->setError(err, error);
 		return false;
 	} else {
 		this->isReadyForIO = true;
@@ -169,16 +188,19 @@ int Rados::selectPool(char *poolname) {
 int Rados::write(char *key, char *value,  size_t value_len) {
 	int err;
 	if (this->isReadyForIO != true) {
-		fprintf(stderr, "Can't write until a pool is selected!\n");
+		this->setError(0, "Can't write before a pool is selected!\n"); 
 		return false;
 	}
 	
-	//fprintf(stderr, "Write Key: %s // Value: %s (%i)\n", key, value, value_len);
 	err = rados_write_full(io, key, value, value_len);
 	if (err < 0) {
-			fprintf(stderr, "Can't write key %s: %s\n", key, strerror(-err));
-			return false;
+        char error[1024];
+        snprintf (error, 1024, "Can't write key %s: %s\n", key, strerror(-err));
+        this->setError(err, error);
+		return false;
 	}
+    
+    return true;
 }
 
 /**

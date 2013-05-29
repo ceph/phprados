@@ -13,9 +13,9 @@
      * 
      */
     
-    $mon_host = "193.104.8.235";
-    $key      = "AQD733tRUCooCBAA4DGA+xY1Z4+mm8rB4eGaEA==";
-    $pool     = "example";
+    $mon_host = "127.0.0.1";
+    $key      = "__YOUR_KEY_GOES_HERE__";
+    $pool     = "phprados";
     
     print __LINE__."\tCreate a new object\n";
 	$rados = new Rados();
@@ -30,7 +30,7 @@
 	$rados->connect();
 	
 	print __LINE__."\tSelect a pool 'example'\n";
-	$rados->selectPool("example");
+	$rados->selectPool($pool);
 
     // The next line is a short cut to the above
     // $rados->connect($mon_host, $key, $pool);

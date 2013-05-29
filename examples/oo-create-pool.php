@@ -9,4 +9,4 @@
 	$rados->connect();
 	
 	print __LINE__."\tCreate a pool 'example'\n";
-	$rados->createPool("example");
+	$rados->createPool("phprados");

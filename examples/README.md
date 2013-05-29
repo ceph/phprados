@@ -6,7 +6,7 @@ The phprados extension comes in two flavors:
 
 For both interfaces examples can be found in this directory.
 
-Some examples require a pool named 'example'. Create it in advanced or use
+Some examples require a pool named 'phprados'. Create it in advanced or use
 one of the create-pool examples to create this pool.
 
 Procedural interface
