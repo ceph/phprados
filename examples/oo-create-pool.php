@@ -3,7 +3,7 @@
 	$rados = new Rados();
 	
 	print __LINE__."\tRead the ceph configuration file\n";
-	$rados->readConfig("/etc/ceph/ceph.conf");
+	$rados->readConfig("/etc/ceph/cephddedd.conf");
 	
 	print __LINE__."\tConnect to the cluster\n";
 	$rados->connect();
