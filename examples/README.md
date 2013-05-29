@@ -11,21 +11,21 @@ one of the create-pool examples to create this pool.
 
 Procedural interface
 --------------------
-*   rados-options.php
+*   (rados-options.php)
     Connect to a Ceph cluster setting the parameters from the code.
     
-*   create-pool-and-list-objects.php
+*   (create-pool-and-list-objects.php)
     Create a new pool, add some objects and list all objects.
     
-*   list-pools.php
+*   (list-pools.php)
     List all available pools.
 
-*   xattrs.php
+*   (xattrs.php)
     Set and read extended attributes.
 
 Object oriented interface
 -------------------------
-*   oo-connect-with-config-file.php
+*   (oo-connect-with-config-file.php)
     Connect to a Ceph cluster using a Ceph configuration file.
     
 *   oo-connect-without-config-file.php
