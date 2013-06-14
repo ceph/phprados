@@ -48,4 +48,7 @@ $ pear config-set auto_discover 1
 $ pear install pear.phpunit.de/PHPUnit
 
 Running the tests is simple:
+$ export id="admin"
+$ export key="your-key-found-in-your-ceph.keyring"
+$ export mon_host="ip-of-your-monitor-host"
 $ phpunit

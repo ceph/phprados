@@ -3,11 +3,10 @@
 	$rados = new Rados();
 	
 	print __LINE__."\tRead the ceph configuration file\n";
-	$rados->readConfig("/etc/ceph/ceph.conf");
-	//$rados->connect("tata");
+	$rados->readConfig("/etc/ceph/cephddedd.conf");
 	
 	print __LINE__."\tConnect to the cluster\n";
 	$rados->connect();
 	
 	print __LINE__."\tCreate a pool 'example'\n";
-	$rados->createPool("example");
+	$rados->createPool("phprados");

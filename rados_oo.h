@@ -11,16 +11,27 @@ class Rados {
 	public:
 		Rados();
 		~Rados();
-		int connect(char *poolname = NULL);
+		int setOption(char *option, char *value);
+		int getOption(char *option, char *value);
+		int connect();
 		int readConfig(char *filename = NULL);
+		int selectPool(char *poolname);
+		int createPool(char *poolname);
+		int destroyPool(char *poolname);
 		int write(char *key, char *value, size_t value_len);
-		void read(char *key, char *bufffer, uint64_t size);
+		int read(char *key, char *bufffer, uint64_t size);
 		size_t getSize(char *key);
+		char *lastErrorMessage;
+		int lastErrorNumber;
 	private:
 		rados_t cluster;
 		rados_ioctx_t io;
-		//int isConnected;
-		//int hasConfig;
+		int hasKey;
+		int hasMonitor;
+		int isReadyForConnect;
+		int isConnected;
+		int isReadyForIO;
+		void setError(int number, char *error);
 };
 
 #endif

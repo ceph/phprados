@@ -7,9 +7,11 @@
 2. Build the extension:
 $ cd phprados
 $ phpize
-$ ./configure
+$ ./configure --enable-procedural --enable--oo
 $ make
 $ make install
+
+If you would only require the procedural interface to build leave out the --enable--oo.
 
 3. Loading the extension
 Add "extension=rados.so" to your php.ini

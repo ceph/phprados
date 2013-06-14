@@ -2,7 +2,7 @@
 #define PHP_RADOS_H
 
 #define PHP_RADOS_EXTNAME  "rados"
-#define PHP_RADOS_EXTVER   "0.9.4-002"
+#define PHP_RADOS_EXTVER   "0.9.4-003"
 
 #include "php.h"
 #include "php_ini.h"

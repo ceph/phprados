@@ -28,9 +28,22 @@ struct rados_object {
 
 zend_class_entry *rados_ce;
 
+/*
+ * Helper function to validate a result returned from the Rados object.
+ * In case of an error, show it as PHP Warning.
+ */
+int validateReturn(int err, Rados *rados) {
+    if (!err) {
+        php_error_docref(NULL TSRMLS_CC, E_WARNING, rados->lastErrorMessage);
+        return false;
+    } else {
+        return true;
+    }
+}
+
 void rados_free_storage(void *object TSRMLS_DC) {
     rados_object *obj = (rados_object *)object;
-    delete obj->rados;
+    delete obj->rados; 
 
     zend_hash_destroy(obj->std.properties);
     FREE_HASHTABLE(obj->std.properties);
@@ -62,7 +75,7 @@ PHP_METHOD(Rados, __construct) {
     int configname_len;
     char *poolname;
     int poolname_len;
-
+    
     Rados *rados = NULL;
     zval *object = getThis();
     rados = new Rados();
@@ -79,38 +92,168 @@ PHP_METHOD(Rados, __destruct) {
     }
 }
 
-PHP_METHOD(Rados, connect) {
+PHP_METHOD(Rados, setOption) {
     Rados *rados;
-    char *poolname;
-    int poolname_len;
+    char *option = NULL;
+    int option_len = 0;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s",  &poolname, &poolname_len) == FAILURE) {
+    char *value = NULL;
+    int value_len = 0;
+    
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ss",  &option, &option_len, &value, &value_len) == FAILURE) {
         RETURN_NULL();
     }
 
     rados_object *obj = (rados_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
     rados = obj->rados;
     if (rados != NULL) {
-        RETURN_BOOL(rados->connect(poolname));
+        RETURN_BOOL(rados->setOption(option, value));
     }
 }
 
-PHP_METHOD(Rados, readconfig) {
+PHP_METHOD(Rados, getOption) {
+    Rados *rados;
+    char *option = NULL;
+    int option_len = 0;
+
+    char value[256];
+    
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s",  &option, &option_len) == FAILURE) {
+        RETURN_NULL();
+    }
+
+    rados_object *obj = (rados_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
+    rados = obj->rados;
+    if (rados != NULL) {
+        if(rados->getOption(option, value)) {
+            RETURN_STRINGL(value, strlen(value), 1);
+        } else {
+            RETURN_BOOL(0);
+        }
+    }
+}
+
+PHP_METHOD(Rados, connect) {
+    Rados *rados;
+    int err;
+    char *mon_host = NULL;
+    int mon_host_len = 0;
+    char *key = NULL;
+    int key_len = 0;
+    char *poolname = NULL;
+    int poolname_len = 0;
+    
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|sss",  &mon_host, &mon_host_len, &key, &key_len, &poolname, &poolname_len) == FAILURE) {
+        RETURN_NULL();
+    }
+    
+    rados_object *obj = (rados_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
+    rados = obj->rados;
+    if (rados != NULL) {
+        if (mon_host != NULL) {
+            err = rados->setOption("mon_host", mon_host);
+            if (!err) {
+                php_error_docref(NULL TSRMLS_CC, E_WARNING, rados->lastErrorMessage);
+                RETURN_BOOL(false);
+            }
+        }
+
+        if (key != NULL) {
+            err = rados->setOption("key", key);
+            if (!err) {
+                php_error_docref(NULL TSRMLS_CC, E_WARNING, rados->lastErrorMessage);
+                RETURN_BOOL(false);
+            }
+        }
+        
+        err = rados->connect();
+        if (!err) {
+            php_error_docref(NULL TSRMLS_CC, E_WARNING, rados->lastErrorMessage);
+            RETURN_BOOL(false);
+        }
+        
+        if (poolname != NULL) {
+            err = rados->selectPool(poolname);
+            if (!err) {
+                fprintf(stderr, "4\n");
+                php_error_docref(NULL TSRMLS_CC, E_WARNING, rados->lastErrorMessage);
+                RETURN_BOOL(false);
+            }
+        }
+        RETURN_BOOL(true);
+    }
+    
+    RETURN_BOOL(false);
+}
+
+PHP_METHOD(Rados, readConfig) {
     char *filename;
     int filename_len;
-
+    
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s",  &filename, &filename_len) == FAILURE) {
         RETURN_NULL();
     }
-
+    
     Rados *rados;
     rados_object *obj = (rados_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
     rados = obj->rados;
-
+    
     if (rados != NULL) {
-        RETURN_BOOL(rados->readConfig(filename));
+        RETURN_BOOL(validateReturn(rados->readConfig(filename), rados));
+    }
+    
+    RETURN_BOOL(false);
+}
+
+PHP_METHOD(Rados, createPool) {
+    Rados *rados;
+    char *poolname;
+    int poolname_len;
+    
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s",  &poolname, &poolname_len) == FAILURE) {
+        RETURN_NULL();
+    }
+    
+    rados_object *obj = (rados_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
+    rados = obj->rados;
+    if (rados != NULL) {
+        RETURN_BOOL(validateReturn(rados->createPool(poolname), rados));    
     }
 }
+
+PHP_METHOD(Rados, destroyPool) {
+    Rados *rados;
+    char *poolname;
+    int poolname_len;
+    
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s",  &poolname, &poolname_len) == FAILURE) {
+        RETURN_NULL();
+    }
+    
+    rados_object *obj = (rados_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
+    rados = obj->rados;
+    if (rados != NULL) {
+        RETURN_BOOL(validateReturn(rados->destroyPool(poolname), rados));
+    }
+}
+
+PHP_METHOD(Rados, selectPool) {
+    Rados *rados;
+    char *poolname;
+    int poolname_len;
+    
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s",  &poolname, &poolname_len) == FAILURE) {
+        RETURN_NULL();
+    }
+    
+    rados_object *obj = (rados_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
+    rados = obj->rados;
+    if (rados != NULL) {
+        RETURN_BOOL(validateReturn(rados->selectPool(poolname), rados));
+    }
+}
+
+
 
 PHP_METHOD(Rados, write) {
     char *key;
@@ -122,13 +265,13 @@ PHP_METHOD(Rados, write) {
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ss|l",  &key, &key_len, &value, &value_len) == FAILURE) {
         RETURN_NULL();
     }
-
+    
     Rados *rados;
     rados_object *obj = (rados_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
     rados = obj->rados;
-
+    
     if (rados != NULL) {
-        RETURN_BOOL(rados->write(key, value, value_len));
+        RETURN_BOOL(validateReturn(rados->write(key, value, value_len), rados));
     }
 }
 
@@ -140,11 +283,11 @@ PHP_METHOD(Rados, read) {
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s",  &key, &key_len) == FAILURE) {
         RETURN_NULL();
     }
-
+    
     Rados *rados;
     rados_object *obj = (rados_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
     rados = obj->rados;
-
+    
     if (rados != NULL) {
         buffer_len = rados->getSize(key);
         char buffer[buffer_len];
@@ -153,12 +296,28 @@ PHP_METHOD(Rados, read) {
     }
 }
 
+PHP_METHOD(Rados, getLastError) {    
+    Rados *rados;
+    rados_object *obj = (rados_object *)zend_object_store_get_object(getThis() TSRMLS_CC);
+    rados = obj->rados;
+    
+    if (rados != NULL) {
+        RETURN_STRINGL(rados->lastErrorMessage, strlen(rados->lastErrorMessage), 1);
+    }
+}
+
 
 function_entry rados_methods[] = {
-    PHP_ME(Rados,  	__construct,	NULL, ZEND_ACC_PUBLIC | ZEND_ACC_CTOR)
-    PHP_ME(Rados,  	connect,		NULL, ZEND_ACC_PUBLIC)
-    PHP_ME(Rados,	readconfig,		NULL, ZEND_ACC_PUBLIC)
-    PHP_ME(Rados,	write,			NULL, ZEND_ACC_PUBLIC)
-    PHP_ME(Rados,	read,			NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados,   __construct,     NULL, ZEND_ACC_PUBLIC | ZEND_ACC_CTOR)
+    PHP_ME(Rados,   connect,         NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados,   setOption,         NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados,   getOption,         NULL, ZEND_ACC_PUBLIC)    
+    PHP_ME(Rados,   readConfig,        NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados,   createPool,        NULL, ZEND_ACC_PUBLIC) 
+    PHP_ME(Rados,   selectPool,        NULL, ZEND_ACC_PUBLIC) 
+    PHP_ME(Rados,   destroyPool,       NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados,   write,             NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados,   read,              NULL, ZEND_ACC_PUBLIC)
+    PHP_ME(Rados,   getLastError,      NULL, ZEND_ACC_PUBLIC)    
     {NULL, NULL, NULL}
 };

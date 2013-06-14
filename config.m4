@@ -41,23 +41,23 @@ if test $PHP_RADOS != "no"; then
     else
         PHP_ADD_LIBRARY_WITH_PATH(crypto, $CRYPTO_DIR/$PHP_LIBDIR, RADOS_SHARED_LIBADD)
     fi
-
-    if test $PHP_PROCEDURAL == "yes"; then
-        AC_DEFINE(BUILD_PROCEDURAL, 1, [ Whether to build the procedural api])
-    fi
+	
+	if test $PHP_PROCEDURAL == "yes"; then
+		AC_DEFINE(BUILD_PROCEDURAL, 1, [ Whether to build the procedural api])
+	fi
 
     if test $PHP_OO == "yes"; then
         AC_DEFINE(BUILD_OO, 1, [Whether to build the OO api])
     fi
 
-    if test $PHP_OO != "no"; then
-        PHP_SUBST(RADOS_SHARED_LIBADD)
-        PHP_REQUIRE_CXX()
-        PHP_ADD_LIBRARY(stdc++, 1, RADOS_SHARED_LIBADD)
-        PHP_NEW_EXTENSION(rados, [php_rados.cc rados_oo.cc], $ext_shared)
-    else
-        PHP_SUBST(RADOS_SHARED_LIBADD)
-        PHP_REQUIRE_CXX()
-        PHP_NEW_EXTENSION(rados, [php_rados.cc], $ext_shared)
-    fi
+	if test $PHP_OO != "no"; then
+		PHP_SUBST(RADOS_SHARED_LIBADD)
+		PHP_REQUIRE_CXX()
+		PHP_SUBST(VEHICLES_SHARED_LIBADD)
+		PHP_ADD_LIBRARY(stdc++, 1, RADOS_SHARED_LIBADD)
+		PHP_NEW_EXTENSION(rados, [php_rados.cc rados_oo.cc], $ext_shared)
+	else
+		PHP_SUBST(RADOS_SHARED_LIBADD)
+		PHP_NEW_EXTENSION(rados, [php_rados.cc], $ext_shared)
+	fi
 fi
