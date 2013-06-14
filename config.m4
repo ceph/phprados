@@ -7,7 +7,6 @@ PHP_ARG_ENABLE(procedural, [Enable the rados procedural interface],
 PHP_ARG_ENABLE(oo, [Enable the rados OO interface],
     [  --enable-oo             Enable "RADOS" OO interface], no, no)
 
-
 if test $PHP_RADOS != "no"; then
 
     AC_MSG_CHECKING([for RADOS files (librados.h)])
@@ -47,9 +46,9 @@ if test $PHP_RADOS != "no"; then
 		AC_DEFINE(BUILD_PROCEDURAL, 1, [ Whether to build the procedural api])
 	fi
 
-	if test $PHP_OO == "yes"; then
-		AC_DEFINE(BUILD_OO, 1, [Whether to build the OO api])
-	fi
+    if test $PHP_OO == "yes"; then
+        AC_DEFINE(BUILD_OO, 1, [Whether to build the OO api])
+    fi
 
 	if test $PHP_OO != "no"; then
 		PHP_SUBST(RADOS_SHARED_LIBADD)
