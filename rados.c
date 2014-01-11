@@ -23,6 +23,12 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_rados_create, 0, 0, 0)
     ZEND_ARG_INFO(0, id)
 ZEND_END_ARG_INFO()
 
+ZEND_BEGIN_ARG_INFO_EX(arginfo_rados_create2, 0, 0, 0)
+    ZEND_ARG_INFO(0, clustername)
+    ZEND_ARG_INFO(0, name)
+    ZEND_ARG_INFO(0, flags)
+ZEND_END_ARG_INFO()
+
 ZEND_BEGIN_ARG_INFO(arginfo_rados_shutdown, 0)
     ZEND_ARG_INFO(0, cluster)
 ZEND_END_ARG_INFO()
@@ -207,6 +213,7 @@ ZEND_END_ARG_INFO()
 
 const zend_function_entry rados_functions[] = {
     PHP_FE(rados_create, arginfo_rados_create)
+    PHP_FE(rados_create2, arginfo_rados_create2)
     PHP_FE(rados_shutdown, arginfo_rados_shutdown)
     PHP_FE(rados_connect, arginfo_rados_connect)
     PHP_FE(rados_conf_read_file, arginfo_rados_conf_read_file)
@@ -268,6 +275,30 @@ PHP_FUNCTION(rados_create)
     }
 
     if (rados_create(&cluster, id) < 0) {
+        RETURN_FALSE;
+    }
+
+    cluster_r = (php_rados_cluster *)emalloc(sizeof(php_rados_cluster));
+    cluster_r->cluster = cluster;
+    cluster_r->connected = false;
+    ZEND_REGISTER_RESOURCE(return_value, cluster_r, le_rados_cluster);
+}
+
+PHP_FUNCTION(rados_create2)
+{
+    php_rados_cluster *cluster_r;
+    rados_t cluster;
+    char *name = NULL;
+    char *clustername = NULL;
+    int name_len = 0;
+    int clustername_len = 0;
+    int flags;
+
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ss|l", &clustername, &clustername_len, &name, &name_len, &flags) == FAILURE) {
+        RETURN_NULL();
+    }
+
+    if (rados_create2(&cluster, clustername, name, flags) < 0) {
         RETURN_FALSE;
     }
 

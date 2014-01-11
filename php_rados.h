@@ -35,6 +35,7 @@ PHP_MSHUTDOWN_FUNCTION(rados);
 PHP_MINFO_FUNCTION(rados);
 
 PHP_FUNCTION(rados_create);
+PHP_FUNCTION(rados_create2);
 PHP_FUNCTION(rados_shutdown);
 PHP_FUNCTION(rados_connect);
 PHP_FUNCTION(rados_conf_read_file);
