@@ -516,8 +516,8 @@ PHP_FUNCTION(rados_pool_create)
     char *pool = NULL;
     char *key;
     uint key_len;
-    int auid = NULL;
-    int crushrule = NULL;
+    int auid = -1;
+    int crushrule = -1;
     int pool_len = 0;
     long option;
     HashPosition pos;
@@ -553,11 +553,11 @@ PHP_FUNCTION(rados_pool_create)
     verifyConnectionState(cluster_r->connected, true);
 
     int r;
-    if ((auid != NULL) && (crushrule != NULL)) {
+    if ((auid > -1) && (crushrule > -1)) {
         r = rados_pool_create_with_all(cluster_r->cluster, pool, auid, crushrule);
-    } else if (auid != NULL) {
+    } else if (auid > -1) {
         r = rados_pool_create_with_auid(cluster_r->cluster, pool, auid);
-    } else if (crushrule != NULL) {
+    } else if (crushrule > -1) {
         r = rados_pool_create_with_crush_rule(cluster_r->cluster, pool, crushrule);
     } else  {
         r = rados_pool_create(cluster_r->cluster, pool);
