@@ -211,6 +211,10 @@ ZEND_BEGIN_ARG_INFO(arginfo_rados_ioctx_snap_get_stamp, 0)
     ZEND_ARG_INFO(0, snapid)
 ZEND_END_ARG_INFO()
 
+ZEND_BEGIN_ARG_INFO(arginfo_rados_cluster_stat, 0)
+    ZEND_ARG_INFO(0, cluster)
+ZEND_END_ARG_INFO()
+
 const zend_function_entry rados_functions[] = {
     PHP_FE(rados_create, arginfo_rados_create)
     PHP_FE(rados_create2, arginfo_rados_create2)
@@ -248,6 +252,7 @@ const zend_function_entry rados_functions[] = {
     PHP_FE(rados_ioctx_snap_lookup, arginfo_rados_ioctx_snap_lookup)
     PHP_FE(rados_ioctx_snap_get_name, arginfo_rados_ioctx_snap_get_name)
     PHP_FE(rados_ioctx_snap_get_stamp, arginfo_rados_ioctx_snap_get_stamp)
+    PHP_FE(rados_cluster_stat, arginfo_rados_cluster_stat)
     {NULL, NULL, NULL}
 };
 
@@ -1089,6 +1094,28 @@ PHP_FUNCTION(rados_ioctx_snap_get_stamp) {
     }
 
     RETURN_LONG(time);
+}
+
+PHP_FUNCTION(rados_cluster_stat) {
+    php_rados_cluster *cluster_r;
+    zval *zcluster;
+    struct rados_cluster_stat_t result;
+
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &zcluster) == FAILURE) {
+        RETURN_NULL();
+    }
+
+    ZEND_FETCH_RESOURCE(cluster_r, php_rados_cluster*, &zcluster, -1, PHP_RADOS_CLUSTER_RES_NAME, le_rados_cluster);
+
+    if (rados_cluster_stat(cluster_r->cluster, &result) < 0) {
+        RETURN_FALSE;
+    }
+
+    array_init(return_value);
+    add_assoc_long(return_value, "kb", result.kb);
+    add_assoc_long(return_value, "kb_used", result.kb_used);
+    add_assoc_long(return_value, "kb_avail", result.kb_avail);
+    add_assoc_long(return_value, "num_objects", result.num_objects);
 }
 
 PHP_MINIT_FUNCTION(rados)
