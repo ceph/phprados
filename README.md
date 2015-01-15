@@ -11,7 +11,9 @@ Also, the selfmanaged snapshots are not implemented in the extension since their
 # Methods / Functions
 For a full overview of the available functions, open a terminal and run:
 
+```bash
 $ php --re rados
+```
 
 Real code examples can be taken from the Unit tests.
 
@@ -35,8 +37,7 @@ For questions, please visit Ceph's IRC channel (#ceph on irc.oftc.net) or contac
 # Examples
 There is an examples directory which contains some examples.
 
-You probably want to look at the unit tests though, since they will be well
-maintained.
+You probably want to look at the unit tests though, since they will be well maintained.
 
 # Unit Testing
 Unit tests are available in the "test" directory.
@@ -44,8 +45,10 @@ Unit tests are available in the "test" directory.
 These tests are all written for PHPUnit and require PHPUnit to be installed.
 
 This can be done using PEAR:
+```bash
 $ pear config-set auto_discover 1
 $ pear install pear.phpunit.de/PHPUnit
+```
 
 Running the tests is simple:
 ```bash
