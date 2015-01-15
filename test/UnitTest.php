@@ -155,6 +155,13 @@ class RadosTest extends PHPUnit_Framework_TestCase {
     /**
      * @depends testRadosConnect
      */
+    public function testRadosWaitForOSDMap($cluster) {
+        $this->assertTrue(rados_wait_for_latest_osdmap($cluster));
+    }
+
+    /**
+     * @depends testRadosConnect
+     */
     public function testRadosShutDown($cluster) {
         $this->assertTrue(rados_shutdown($cluster));
     }
