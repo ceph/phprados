@@ -1,1 +1,10 @@
 phpunit.xml
+*.la
+*.lo
+*.so
+build/*
+*.log
+.libs/*
+.deps
+Makefile*
+*.m4
