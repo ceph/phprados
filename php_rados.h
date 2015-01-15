@@ -71,6 +71,7 @@ PHP_FUNCTION(rados_ioctx_snap_lookup);
 PHP_FUNCTION(rados_ioctx_snap_get_name);
 PHP_FUNCTION(rados_ioctx_snap_get_stamp);
 PHP_FUNCTION(rados_cluster_stat);
+PHP_FUNCTION(rados_ioctx_pool_stat);
 
 extern zend_module_entry rados_module_entry;
 #define phpext_rados_ptr &rados_module_entry;

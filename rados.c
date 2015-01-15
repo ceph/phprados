@@ -215,6 +215,10 @@ ZEND_BEGIN_ARG_INFO(arginfo_rados_cluster_stat, 0)
     ZEND_ARG_INFO(0, cluster)
 ZEND_END_ARG_INFO()
 
+ZEND_BEGIN_ARG_INFO(arginfo_rados_ioctx_pool_stat, 0)
+    ZEND_ARG_INFO(0, ioctx)
+ZEND_END_ARG_INFO()
+
 const zend_function_entry rados_functions[] = {
     PHP_FE(rados_create, arginfo_rados_create)
     PHP_FE(rados_create2, arginfo_rados_create2)
@@ -253,6 +257,7 @@ const zend_function_entry rados_functions[] = {
     PHP_FE(rados_ioctx_snap_get_name, arginfo_rados_ioctx_snap_get_name)
     PHP_FE(rados_ioctx_snap_get_stamp, arginfo_rados_ioctx_snap_get_stamp)
     PHP_FE(rados_cluster_stat, arginfo_rados_cluster_stat)
+    PHP_FE(rados_ioctx_pool_stat, arginfo_rados_ioctx_pool_stat)
     {NULL, NULL, NULL}
 };
 
@@ -1116,6 +1121,36 @@ PHP_FUNCTION(rados_cluster_stat) {
     add_assoc_long(return_value, "kb_used", result.kb_used);
     add_assoc_long(return_value, "kb_avail", result.kb_avail);
     add_assoc_long(return_value, "num_objects", result.num_objects);
+}
+
+PHP_FUNCTION(rados_ioctx_pool_stat) {
+    php_rados_ioctx *ioctx_r;
+    zval *zioctx;
+    struct rados_pool_stat_t result;
+
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &zioctx) == FAILURE) {
+        RETURN_FALSE;
+    }
+
+    ZEND_FETCH_RESOURCE(ioctx_r, php_rados_ioctx*, &zioctx, -1, PHP_RADOS_IOCTX_RES_NAME, le_rados_ioctx);
+
+    if (rados_ioctx_pool_stat(ioctx_r->io, &result) < 0) {
+        RETURN_FALSE;
+    }
+
+    array_init(return_value);
+    add_assoc_long(return_value, "num_bytes", result.num_bytes);
+    add_assoc_long(return_value, "num_kb", result.num_kb);
+    add_assoc_long(return_value, "num_objects", result.num_objects);
+    add_assoc_long(return_value, "num_object_clones", result.num_object_clones);
+    add_assoc_long(return_value, "num_object_copies", result.num_object_copies);
+    add_assoc_long(return_value, "num_objects_missing_on_primary", result.num_objects_missing_on_primary);
+    add_assoc_long(return_value, "num_objects_unfound", result.num_objects_unfound);
+    add_assoc_long(return_value, "num_objects_degraded", result.num_objects_degraded);
+    add_assoc_long(return_value, "num_rd", result.num_rd);
+    add_assoc_long(return_value, "num_rd_kb", result.num_rd_kb);
+    add_assoc_long(return_value, "num_wr", result.num_wr);
+    add_assoc_long(return_value, "num_wr_kb", result.num_wr_kb);
 }
 
 PHP_MINIT_FUNCTION(rados)
