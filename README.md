@@ -8,7 +8,7 @@ The extension should work on both 32 and 64-bit systems, but due to PHP's engine
 
 Also, the selfmanaged snapshots are not implemented in the extension since their usage is pretty rare.
 
-** METHODS / FUNCTIONS **
+# Methods / Functions
 For a full overview of the available functions, open a terminal and run:
 
 $ php --re rados
