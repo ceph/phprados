@@ -89,6 +89,34 @@ class RadosTest extends PHPUnit_Framework_TestCase {
     public function testRadosRemove($info) {
         $r = rados_remove($info['ioctx'], $info['oid']);
         $this->assertTrue($r);
+        return $info;
+    }
+
+    /**
+     * @depends testRadosRemove
+     */
+    public function testRadosPoolStat($info) {
+        $stats = rados_ioctx_pool_stat($info['ioctx']);
+        $this->assertGreaterThanOrEqual(0, $stats['num_bytes']);
+        $this->assertGreaterThanOrEqual(0, $stats['num_kb']);
+        $this->assertGreaterThanOrEqual(0, $stats['num_objects']);
+        $this->assertGreaterThanOrEqual(0, $stats['num_object_clones']);
+        $this->assertGreaterThanOrEqual(0, $stats['num_object_copies']);
+        $this->assertGreaterThanOrEqual(0, $stats['num_objects_missing_on_primary']);
+        $this->assertGreaterThanOrEqual(0, $stats['num_objects_unfound']);
+        $this->assertGreaterThanOrEqual(0, $stats['num_objects_degraded']);
+        $this->assertGreaterThanOrEqual(0, $stats['num_rd']);
+        $this->assertGreaterThanOrEqual(0, $stats['num_rd_kb']);
+        $this->assertGreaterThanOrEqual(0, $stats['num_wr']);
+        $this->assertGreaterThanOrEqual(0, $stats['num_wr_kb']);
+        return $info;
+    }
+
+    /**
+     * @depends testRadosPoolStat
+     */
+    public function testRadosDestroyIoCTX($info) {
+        $this->assertNull(rados_ioctx_destroy($info['ioctx']));
     }
 
     /**
@@ -103,6 +131,25 @@ class RadosTest extends PHPUnit_Framework_TestCase {
      */
     public function testRadosPoolList($cluster) {
         $this->assertNotNull(rados_pool_list($cluster));
+    }
+
+    /**
+     * @depends testRadosConnect
+     */
+    public function testRadosClusterStat($cluster) {
+        $stats = rados_cluster_stat($cluster);
+        $this->assertGreaterThan(0, $stats['kb']);
+        $this->assertGreaterThanOrEqual(0, $stats['kb_used']);
+        $this->assertLessThan($stats['kb'], $stats['kb_avail']);
+        $this->assertGreaterThanOrEqual(0, $stats['num_objects']);
+    }
+
+    /**
+     * @depends testRadosConnect
+     */
+    public function testRadosClusterFsid($cluster) {
+        $fsid = rados_cluster_fsid($cluster);
+        $this->assertEquals(36, strlen($fsid));
     }
 
     /**
