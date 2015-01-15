@@ -227,6 +227,10 @@ ZEND_BEGIN_ARG_INFO(arginfo_rados_wait_for_latest_osdmap, 0)
     ZEND_ARG_INFO(0, cluster)
 ZEND_END_ARG_INFO()
 
+ZEND_BEGIN_ARG_INFO(arginfo_rados_pool_reverse_lookup, 0)
+    ZEND_ARG_INFO(0, cluster)
+ZEND_END_ARG_INFO()
+
 const zend_function_entry rados_functions[] = {
     PHP_FE(rados_create, arginfo_rados_create)
     PHP_FE(rados_create2, arginfo_rados_create2)
@@ -268,6 +272,7 @@ const zend_function_entry rados_functions[] = {
     PHP_FE(rados_ioctx_pool_stat, arginfo_rados_ioctx_pool_stat)
     PHP_FE(rados_cluster_fsid, arginfo_rados_cluster_fsid)
     PHP_FE(rados_wait_for_latest_osdmap, arginfo_rados_wait_for_latest_osdmap)
+    PHP_FE(rados_pool_reverse_lookup, arginfo_rados_pool_reverse_lookup)
     {NULL, NULL, NULL}
 };
 
@@ -1199,6 +1204,26 @@ PHP_FUNCTION(rados_wait_for_latest_osdmap) {
     }
 
     RETURN_TRUE;
+}
+
+PHP_FUNCTION(rados_pool_reverse_lookup) {
+    php_rados_cluster *cluster_r;
+    zval *zcluster;
+    int pool_id;
+    size_t maxlen = 1024;
+    char pool_name[maxlen];
+
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &zcluster, &pool_id) == FAILURE) {
+        RETURN_NULL();
+    }
+
+    ZEND_FETCH_RESOURCE(cluster_r, php_rados_cluster*, &zcluster, -1, PHP_RADOS_CLUSTER_RES_NAME, le_rados_cluster);
+
+    if (rados_pool_reverse_lookup(cluster_r->cluster, pool_id, &pool_name, maxlen) < 0) {
+        RETURN_FALSE;
+    }
+
+    RETURN_STRINGL(pool_name, strlen(pool_name), 1);
 }
 
 PHP_MINIT_FUNCTION(rados)

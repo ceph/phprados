@@ -74,6 +74,7 @@ PHP_FUNCTION(rados_cluster_stat);
 PHP_FUNCTION(rados_ioctx_pool_stat);
 PHP_FUNCTION(rados_cluster_fsid);
 PHP_FUNCTION(rados_wait_for_latest_osdmap);
+PHP_FUNCTION(rados_pool_reverse_lookup);
 
 extern zend_module_entry rados_module_entry;
 #define phpext_rados_ptr &rados_module_entry;

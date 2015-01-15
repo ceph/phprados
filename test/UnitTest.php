@@ -123,8 +123,20 @@ class RadosTest extends PHPUnit_Framework_TestCase {
      * @depends testRadosCreatePool
      */
     public function testRadosPoolLookup($cluster) {
-        $id = rados_pool_lookup($cluster, getenv('pool'));
+        $pool = getenv('pool');
+        $id = rados_pool_lookup($cluster, $pool);
         $this->assertGreaterThanOrEqual(0, $id);
+        $info['cluster'] = $cluster;
+        $info['id'] = $id;
+        $info['pool'] = getenv('pool');
+    }
+
+    /**
+     * @depends testRadosPoolLookup
+     */
+    public function testRadosPoolReverseLookup($info) {
+        $pool = rados_pool_reverse_lookup($info['cluster'], $info['id']);
+        $this->assertEquals($pool, $info['pool']);
     }
 
     /**
