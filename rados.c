@@ -229,6 +229,7 @@ ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_INFO(arginfo_rados_pool_reverse_lookup, 0)
     ZEND_ARG_INFO(0, cluster)
+    ZEND_ARG_INFO(0, poolid)
 ZEND_END_ARG_INFO()
 
 const zend_function_entry rados_functions[] = {
@@ -1209,9 +1210,8 @@ PHP_FUNCTION(rados_wait_for_latest_osdmap) {
 PHP_FUNCTION(rados_pool_reverse_lookup) {
     php_rados_cluster *cluster_r;
     zval *zcluster;
-    int pool_id;
-    size_t maxlen = 1024;
-    char pool_name[maxlen];
+    long pool_id;
+    char pool_name[PHP_RADOS_POOL_NAME_MAX_LENGTH];
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &zcluster, &pool_id) == FAILURE) {
         RETURN_NULL();
@@ -1219,7 +1219,7 @@ PHP_FUNCTION(rados_pool_reverse_lookup) {
 
     ZEND_FETCH_RESOURCE(cluster_r, php_rados_cluster*, &zcluster, -1, PHP_RADOS_CLUSTER_RES_NAME, le_rados_cluster);
 
-    if (rados_pool_reverse_lookup(cluster_r->cluster, pool_id, &pool_name, maxlen) < 0) {
+    if (rados_pool_reverse_lookup(cluster_r->cluster, pool_id, pool_name, sizeof(pool_name)) < 0) {
         RETURN_FALSE;
     }
 

@@ -129,6 +129,7 @@ class RadosTest extends PHPUnit_Framework_TestCase {
         $info['cluster'] = $cluster;
         $info['id'] = $id;
         $info['pool'] = getenv('pool');
+        return $info;
     }
 
     /**
