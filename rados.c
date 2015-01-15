@@ -511,6 +511,7 @@ PHP_FUNCTION(rados_pool_lookup)
     zval *zcluster;
     char *pool = NULL;
     int pool_len = 0;
+    uint64_t pool_id = 0;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &zcluster, &pool, &pool_len) == FAILURE) {
         RETURN_NULL();
@@ -520,11 +521,13 @@ PHP_FUNCTION(rados_pool_lookup)
 
     verifyConnectionState(cluster_r->connected, true);
 
-    if (rados_pool_lookup(cluster_r->cluster, pool) < 0) {
+    pool_id = rados_pool_lookup(cluster_r->cluster, pool);
+
+    if (pool_id < 0) {
         RETURN_FALSE;
     }
 
-    RETURN_TRUE;
+    RETURN_LONG(pool_id);
 }
 
 PHP_FUNCTION(rados_pool_create)
