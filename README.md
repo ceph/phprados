@@ -1,5 +1,5 @@
 # PHPRADOS
-phprados is a PHP extension for librados ( http://www.ceph.com/docs/master/api/librados/ ).
+phprados is a PHP extension for [librados](http://www.ceph.com/docs/master/rados/api/librados/).
 
 The extension wraps the C API of librados into a extension, where almost all the native methods are implemented.
 
