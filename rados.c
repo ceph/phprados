@@ -714,7 +714,8 @@ PHP_FUNCTION(rados_read) {
         RETURN_FALSE;
     }
 
-    char buffer[size];
+    //char buffer[size];
+    char *buffer = emalloc(size * sizeof(char));
 
     ZEND_FETCH_RESOURCE(ioctx_r, php_rados_ioctx*, &zioctx, -1, PHP_RADOS_IOCTX_RES_NAME, le_rados_ioctx);
 
