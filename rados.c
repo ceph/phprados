@@ -714,15 +714,18 @@ PHP_FUNCTION(rados_read) {
         RETURN_FALSE;
     }
 
-    char buffer[size];
+    //char buffer[size];
+    char *buffer = emalloc(size * sizeof(char));
 
     ZEND_FETCH_RESOURCE(ioctx_r, php_rados_ioctx*, &zioctx, -1, PHP_RADOS_IOCTX_RES_NAME, le_rados_ioctx);
 
     if (rados_read(ioctx_r->io, oid, buffer, size, offset) < 0) {
+        efree(buffer); //free the buffer is rados_read fails
         RETURN_FALSE;
+        return;
     }
 
-    RETURN_STRINGL(buffer, size, 1);
+    RETURN_STRINGL(buffer, size, 0); //passing by reference, the third param
 }
 
 PHP_FUNCTION(rados_remove) {
