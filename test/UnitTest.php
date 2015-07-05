@@ -1,3 +1,4 @@
+<?php
 /*
  * phprados - A PHP5 extension for using librados
  *
@@ -9,8 +10,6 @@
  * Foundation.  See file COPYING.
  *
  */
-
-<?php
 
 class RadosTest extends PHPUnit_Framework_TestCase {
 
