@@ -1026,7 +1026,7 @@ PHP_FUNCTION(rados_rollback) {
 
     ZEND_FETCH_RESOURCE(ioctx_r, php_rados_ioctx*, &zioctx, -1, PHP_RADOS_IOCTX_RES_NAME, le_rados_ioctx);
 
-    if (rados_rollback(ioctx_r->io, oid, snapname) < 0) {
+    if (rados_ioctx_snap_rollback(ioctx_r->io, oid, snapname) < 0) {
         RETURN_FALSE;
     }
 
@@ -1186,7 +1186,7 @@ PHP_FUNCTION(rados_cluster_fsid) {
 
     ZEND_FETCH_RESOURCE(cluster_r, php_rados_cluster*, &zcluster, -1, PHP_RADOS_CLUSTER_RES_NAME, le_rados_cluster);
 
-    if (rados_cluster_fsid(cluster_r->cluster, &fsid, sizeof(fsid)) < 0) {
+    if (rados_cluster_fsid(cluster_r->cluster, fsid, sizeof(fsid)) < 0) {
         RETURN_FALSE;
     }
 
