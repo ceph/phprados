@@ -683,10 +683,10 @@ PHP_FUNCTION(rados_write) {
 
 PHP_FUNCTION(rados_write_full) {
     php_rados_ioctx *ioctx_r;
-    char *oid=NULL;
-    char *buffer=NULL;
-    int oid_len;
-    size_t buffer_len;
+    char *oid = NULL;
+    char *buffer = NULL;
+    int oid_len = 0;
+    size_t buffer_len = 0;
     zval *zioctx;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rss", &zioctx, &oid, &oid_len, &buffer, &buffer_len) == FAILURE) {
