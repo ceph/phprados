@@ -222,6 +222,18 @@ class RadosTest extends PHPUnit_Framework_TestCase {
     public function testRadosShutDown($cluster) {
         $this->assertTrue(rados_shutdown($cluster));
     }
+
+    /**
+     * @depends testRadosCreateIoCTX
+     */
+    public function testRadosNamespace($ioctx) {
+        $this->assertNull(rados_ioctx_get_namespace($ioctx));
+        rados_ioctx_set_namespace($ioctx, "foo");
+        $name = rados_ioctx_get_namespace($ioctx);
+        $this->assertEquals($name, "foo");
+        rados_ioctx_set_namespace($ioctx, NULL);
+        $this->assertNull(rados_ioctx_get_namespace($ioctx));
+    }
 }
 
 ?>
