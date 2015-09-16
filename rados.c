@@ -58,6 +58,11 @@ ZEND_BEGIN_ARG_INFO(arginfo_rados_ioctx_create, 0)
     ZEND_ARG_INFO(0, pool)
 ZEND_END_ARG_INFO()
 
+ZEND_BEGIN_ARG_INFO(arginfo_rados_ioctx_create2, 0)
+    ZEND_ARG_INFO(0, cluster)
+    ZEND_ARG_INFO(0, pool_id)
+ZEND_END_ARG_INFO()
+
 ZEND_BEGIN_ARG_INFO_EX(arginfo_rados_pool_list, 0, 0, 1)
     ZEND_ARG_INFO(0, cluster)
 ZEND_END_ARG_INFO()
@@ -245,6 +250,7 @@ const zend_function_entry rados_functions[] = {
     PHP_FE(rados_conf_set, arginfo_rados_conf_set)
     PHP_FE(rados_conf_get, arginfo_rados_conf_get)
     PHP_FE(rados_ioctx_create, arginfo_rados_ioctx_create)
+    PHP_FE(rados_ioctx_create2, arginfo_rados_ioctx_create2)
     PHP_FE(rados_ioctx_destroy, arginfo_rados_ioctx_destroy)
     PHP_FE(rados_pool_list, arginfo_rados_pool_list)
     PHP_FE(rados_pool_lookup, arginfo_rados_pool_lookup)
@@ -1245,6 +1251,31 @@ PHP_FUNCTION(rados_get_instance_id) {
     ZEND_FETCH_RESOURCE(cluster_r, php_rados_cluster*, &zcluster, -1, PHP_RADOS_CLUSTER_RES_NAME, le_rados_cluster);
 
     RETURN_LONG(rados_get_instance_id(cluster_r->cluster));
+}
+
+PHP_FUNCTION(rados_ioctx_create2)
+{
+    php_rados_cluster *cluster_r;
+    php_rados_ioctx *ioctx_r;
+    zval *zcluster;
+    rados_ioctx_t io;
+    long pool_id;
+
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &zcluster, &pool_id) == FAILURE) {
+        RETURN_NULL();
+    }
+
+    ZEND_FETCH_RESOURCE(cluster_r, php_rados_cluster*, &zcluster, -1, PHP_RADOS_CLUSTER_RES_NAME, le_rados_cluster);
+
+    verifyConnectionState(cluster_r->connected, true);
+
+    if (rados_ioctx_create2(cluster_r->cluster, pool_id, &io) < 0) {
+        RETURN_FALSE;
+    }
+
+    ioctx_r = (php_rados_ioctx *)emalloc(sizeof(php_rados_ioctx));
+    ioctx_r->io = io;
+    ZEND_REGISTER_RESOURCE(return_value, ioctx_r, le_rados_ioctx);
 }
 
 PHP_MINIT_FUNCTION(rados)

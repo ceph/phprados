@@ -147,6 +147,16 @@ class RadosTest extends PHPUnit_Framework_TestCase {
     public function testRadosPoolReverseLookup($info) {
         $pool = rados_pool_reverse_lookup($info['cluster'], $info['id']);
         $this->assertEquals($pool, $info['pool']);
+        return $info;
+    }
+
+    /**
+     * @depends testRadosPoolReverseLookup
+     */
+    public function testRadosCreate2IoCTX($info) {
+        $ioctx = rados_ioctx_create2($info['cluster'], $info['id']);
+        $this->assertNotNull($ioctx);
+        $this->assertNull(rados_ioctx_destroy($ioctx));
     }
 
     /**
