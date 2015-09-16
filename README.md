@@ -44,13 +44,18 @@ Unit tests are available in the "test" directory.
 
 These tests are all written for PHPUnit and require PHPUnit to be installed.
 
-This can be done using PEAR:
+PHPUnit can be dowloaded as a PHAR archive from the PHPUnit website:
+
 ```bash
-$ pear config-set auto_discover 1
-$ pear install pear.phpunit.de/PHPUnit
+$ wget https://phar.phpunit.de/phpunit.phar
+$ chmod +x phpunit.phar
 ```
 
-Running the tests is simple:
+Before you can run the tests, create a 'phpunit.xml' based on the 'phpunit.xml.dist' file containing
+the connection credentials to the Ceph cluster.
+
+Afterwards, run PHPUnit:
+
 ```bash
-$ phpunit
+$ ./phpunit.phar
 ```
