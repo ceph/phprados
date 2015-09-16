@@ -39,6 +39,15 @@ class RadosTest extends PHPUnit_Framework_TestCase {
     }
 
     /**
+     * @depends testRadosConnect
+     */
+    public function testRadosInstanceId($cluster) {
+        $instance_id = rados_get_instance_id($cluster);
+        $this->assertGreaterThan(0, $instance_id);
+        return $cluster;
+    }
+
+    /**
       * This test will create the pool specified in the environment variable 'pool'
       *
       * After a succesfull creation it will remove the pool again
