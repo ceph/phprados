@@ -241,6 +241,10 @@ ZEND_BEGIN_ARG_INFO(arginfo_rados_get_instance_id, 0)
     ZEND_ARG_INFO(0, cluster)
 ZEND_END_ARG_INFO()
 
+ZEND_BEGIN_ARG_INFO(arginfo_rados_ioctx_get_id, 0)
+    ZEND_ARG_INFO(0, ioctx)
+ZEND_END_ARG_INFO()
+
 const zend_function_entry rados_functions[] = {
     PHP_FE(rados_create, arginfo_rados_create)
     PHP_FE(rados_create2, arginfo_rados_create2)
@@ -285,6 +289,7 @@ const zend_function_entry rados_functions[] = {
     PHP_FE(rados_wait_for_latest_osdmap, arginfo_rados_wait_for_latest_osdmap)
     PHP_FE(rados_pool_reverse_lookup, arginfo_rados_pool_reverse_lookup)
     PHP_FE(rados_get_instance_id, arginfo_rados_get_instance_id)
+    PHP_FE(rados_ioctx_get_id, arginfo_rados_ioctx_get_id)
     {NULL, NULL, NULL}
 };
 
@@ -1276,6 +1281,19 @@ PHP_FUNCTION(rados_ioctx_create2)
     ioctx_r = (php_rados_ioctx *)emalloc(sizeof(php_rados_ioctx));
     ioctx_r->io = io;
     ZEND_REGISTER_RESOURCE(return_value, ioctx_r, le_rados_ioctx);
+}
+
+PHP_FUNCTION(rados_ioctx_get_id) {
+    php_rados_ioctx *ioctx_r;
+    zval *zioctx;
+
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &zioctx) == FAILURE) {
+        RETURN_FALSE;
+    }
+
+    ZEND_FETCH_RESOURCE(ioctx_r, php_rados_ioctx*, &zioctx, -1, PHP_RADOS_IOCTX_RES_NAME, le_rados_ioctx);
+
+    RETURN_LONG(rados_ioctx_get_id(ioctx_r->io));
 }
 
 PHP_MINIT_FUNCTION(rados)

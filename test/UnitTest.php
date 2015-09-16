@@ -71,6 +71,15 @@ class RadosTest extends PHPUnit_Framework_TestCase {
     /**
      * @depends testRadosCreateIoCTX
      */
+    public function testRadosGetIoCTXId($ioctx) {
+        $ioctx_id = rados_ioctx_get_id($ioctx);
+        $this->assertGreaterThan(0, $ioctx_id);
+        return $ioctx;
+    }
+
+    /**
+     * @depends testRadosGetIoCTXId
+     */
     public function testRadosWrite($ioctx) {
         $oid = md5(rand(0,9999999999));
         $buf = sha1($oid);
