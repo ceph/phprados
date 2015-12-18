@@ -206,6 +206,7 @@ class RadosTest extends PHPUnit_Framework_TestCase {
     public function testRadosClusterFsid($cluster) {
         $fsid = rados_cluster_fsid($cluster);
         $this->assertEquals(36, strlen($fsid));
+        $this->assertEquals(1, preg_match('/^\w{8}-\w{4}-\w{4}-\w{4}-\w{12}$/', $fsid));
     }
 
     /**
