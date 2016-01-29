@@ -916,7 +916,7 @@ PHP_FUNCTION(rados_read) {
         add_assoc_string(return_value, "errMessage", errDesc, 0);
     }
     else {
-        RETURN_STRINGL(buffer, size, 0);
+        RETURN_STRINGL(buffer, response, 0);
     }
 
 }
