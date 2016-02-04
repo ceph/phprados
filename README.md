@@ -44,13 +44,62 @@ Unit tests are available in the "test" directory.
 
 These tests are all written for PHPUnit and require PHPUnit to be installed.
 
-This can be done using PEAR:
+PHPUnit can be dowloaded as a PHAR archive from the PHPUnit website:
+
 ```bash
-$ pear config-set auto_discover 1
-$ pear install pear.phpunit.de/PHPUnit
+$ wget https://phar.phpunit.de/phpunit.phar
+$ chmod +x phpunit.phar
 ```
 
-Running the tests is simple:
+Before you can run the tests, create a 'phpunit.xml' based on the 'phpunit.xml.dist' file containing
+the connection credentials to the Ceph cluster.
+
+For example:
+
+```
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit>
+  <testsuites>
+    <testsuite name="My Test Suite">
+      <file>test/UnitTest.php</file>
+    </testsuite>
+  </testsuites>
+
+  <php>
+    <env name="mon_host" value="localhost" />
+    <env name="id"       value="admin" />
+    <env name="key"      value="AQBYnaZUyOeRCRAAysjZSIsHO6aWKiTjXkVNMQ==" />
+    <env name="pool"     value="phprados" />
+  </php>
+</phpunit>
+```
+
+Afterwards, run PHPUnit:
+
 ```bash
-$ phpunit
+$ ./phpunit.phar
+```
+
+It should show that the tests have run successfully:
+
+```
+/*
+ * phprados - A PHP5 extension for using librados
+ *
+ * Copyright (C) 2013 Wido den Hollander <wido@widodh.nl>
+ *
+ * This is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License version 2.1, as published by the Free Software
+ * Foundation.  See file COPYING.
+ *
+ */
+
+PHPUnit 4.8.7 by Sebastian Bergmann and contributors.
+
+..................
+
+Time: 2.23 seconds, Memory: 13.25Mb
+
+OK (18 tests, 49 assertions)
 ```

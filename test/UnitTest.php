@@ -1,3 +1,4 @@
+<?php
 /*
  * phprados - A PHP5 extension for using librados
  *
@@ -9,8 +10,6 @@
  * Foundation.  See file COPYING.
  *
  */
-
-<?php
 
 class RadosTest extends PHPUnit_Framework_TestCase {
 
@@ -39,6 +38,15 @@ class RadosTest extends PHPUnit_Framework_TestCase {
     }
 
     /**
+     * @depends testRadosConnect
+     */
+    public function testRadosInstanceId($cluster) {
+        $instance_id = rados_get_instance_id($cluster);
+        $this->assertGreaterThan(0, $instance_id);
+        return $cluster;
+    }
+
+    /**
       * This test will create the pool specified in the environment variable 'pool'
       *
       * After a succesfull creation it will remove the pool again
@@ -61,6 +69,23 @@ class RadosTest extends PHPUnit_Framework_TestCase {
 
     /**
      * @depends testRadosCreateIoCTX
+     */
+    public function testRadosGetIoCTXId($ioctx) {
+        $ioctx_id = rados_ioctx_get_id($ioctx);
+        $this->assertGreaterThan(0, $ioctx_id);
+        return $ioctx;
+    }
+
+    /**
+     * @depends testRadosGetIoCTXId
+     */
+    public function testRadosIoCTXPoolName($ioctx) {
+        $this->assertEquals(getenv('pool'), rados_ioctx_get_pool_name($ioctx));
+        return $ioctx;
+    }
+
+    /**
+     * @depends testRadosGetIoCTXId
      */
     public function testRadosWrite($ioctx) {
         $oid = md5(rand(0,9999999999));
@@ -138,6 +163,16 @@ class RadosTest extends PHPUnit_Framework_TestCase {
     public function testRadosPoolReverseLookup($info) {
         $pool = rados_pool_reverse_lookup($info['cluster'], $info['id']);
         $this->assertEquals($pool, $info['pool']);
+        return $info;
+    }
+
+    /**
+     * @depends testRadosPoolReverseLookup
+     */
+    public function testRadosCreate2IoCTX($info) {
+        $ioctx = rados_ioctx_create2($info['cluster'], $info['id']);
+        $this->assertNotNull($ioctx);
+        $this->assertNull(rados_ioctx_destroy($ioctx));
     }
 
     /**
@@ -171,6 +206,7 @@ class RadosTest extends PHPUnit_Framework_TestCase {
     public function testRadosClusterFsid($cluster) {
         $fsid = rados_cluster_fsid($cluster);
         $this->assertEquals(36, strlen($fsid));
+        $this->assertEquals(1, preg_match('/^\w{8}-\w{4}-\w{4}-\w{4}-\w{12}$/', $fsid));
     }
 
     /**
@@ -185,6 +221,18 @@ class RadosTest extends PHPUnit_Framework_TestCase {
      */
     public function testRadosShutDown($cluster) {
         $this->assertTrue(rados_shutdown($cluster));
+    }
+
+    /**
+     * @depends testRadosCreateIoCTX
+     */
+    public function testRadosNamespace($ioctx) {
+        $this->assertNull(rados_ioctx_get_namespace($ioctx));
+        rados_ioctx_set_namespace($ioctx, "foo");
+        $name = rados_ioctx_get_namespace($ioctx);
+        $this->assertEquals($name, "foo");
+        rados_ioctx_set_namespace($ioctx, NULL);
+        $this->assertNull(rados_ioctx_get_namespace($ioctx));
     }
 }
 
