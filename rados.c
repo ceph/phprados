@@ -982,7 +982,7 @@ PHP_FUNCTION(rados_append) {
     int buffer_len;
     zval *zioctx;
     int response = 0;
-    uint645_t offset=0;
+    uint64_t offset=0;
     char *errDesc = NULL;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rss|l", &zioctx, &oid, &oid_len, &buffer, &buffer_len, &offset) == FAILURE) {
@@ -1066,7 +1066,7 @@ PHP_FUNCTION(rados_getxattr) {
         add_assoc_string(return_value, "errMessage", errDesc, 0);
     }
     else {
-        RETURN_STRINGL(buffer, size, 1);
+        RETURN_STRINGL(buffer, response, 1);
     }
 }
 
