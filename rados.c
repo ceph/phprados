@@ -835,7 +835,7 @@ PHP_FUNCTION(rados_write) {
     char *oid=NULL;
     char *buffer=NULL;
     int oid_len;
-    size_t buffer_len;
+    int buffer_len;
     uint64_t offset = 0;
     zval *zioctx;
     int response = 0;
@@ -847,7 +847,7 @@ PHP_FUNCTION(rados_write) {
 
     ZEND_FETCH_RESOURCE(ioctx_r, php_rados_ioctx*, &zioctx, -1, PHP_RADOS_IOCTX_RES_NAME, le_rados_ioctx);
 
-    response = rados_write(ioctx_r->io, oid, buffer, buffer_len, offset);
+    response = rados_write(ioctx_r->io, oid, buffer, (size_t)buffer_len, offset);
 
     if(response<0) {
         getErrorDescription(&errDesc,response);
@@ -979,19 +979,20 @@ PHP_FUNCTION(rados_append) {
     char *oid=NULL;
     char *buffer=NULL;
     int oid_len;
-    size_t buffer_len;
+    int buffer_len;
     zval *zioctx;
     int response = 0;
+    uint64_t offset=0;
     char *errDesc = NULL;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rss|l", &zioctx, &oid, &oid_len, &buffer, &buffer_len) == FAILURE) {
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rss|l", &zioctx, &oid, &oid_len, &buffer, &buffer_len, &offset) == FAILURE) {
         RETURN_FALSE;
     }
 
     ZEND_FETCH_RESOURCE(ioctx_r, php_rados_ioctx*, &zioctx, -1, PHP_RADOS_IOCTX_RES_NAME, le_rados_ioctx);
 
 
-    response = rados_append(ioctx_r->io, oid, buffer, buffer_len);
+    response = rados_append(ioctx_r->io, oid, buffer, (size_t)buffer_len);
     if(response<0) {
         getErrorDescription(&errDesc,response);
         array_init(return_value);
@@ -1065,7 +1066,7 @@ PHP_FUNCTION(rados_getxattr) {
         add_assoc_string(return_value, "errMessage", errDesc, 0);
     }
     else {
-        RETURN_STRINGL(buffer, size, 1);
+        RETURN_STRINGL(buffer, response, 1);
     }
 }
 
