@@ -835,7 +835,7 @@ PHP_FUNCTION(rados_write) {
     char *oid=NULL;
     char *buffer=NULL;
     int oid_len;
-    size_t buffer_len;
+    int buffer_len;
     uint64_t offset = 0;
     zval *zioctx;
     int response = 0;
@@ -847,7 +847,7 @@ PHP_FUNCTION(rados_write) {
 
     ZEND_FETCH_RESOURCE(ioctx_r, php_rados_ioctx*, &zioctx, -1, PHP_RADOS_IOCTX_RES_NAME, le_rados_ioctx);
 
-    response = rados_write(ioctx_r->io, oid, buffer, buffer_len, offset);
+    response = rados_write(ioctx_r->io, oid, buffer,(size_t) buffer_len, offset);
 
     if(response<0) {
         getErrorDescription(&errDesc,response);
