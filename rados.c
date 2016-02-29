@@ -640,7 +640,6 @@ PHP_FUNCTION(rados_pool_list)
             b += strlen(b) + 1;
         }
 
-        RETURN_TRUE;
     }
 }
 
