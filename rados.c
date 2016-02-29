@@ -1065,7 +1065,7 @@ PHP_FUNCTION(rados_getxattr) {
         add_assoc_string(return_value, "errMessage", errDesc, 0);
     }
     else {
-        RETURN_STRINGL(buffer, size, 1);
+        RETURN_STRINGL(buffer, response, 1);
     }
 }
 
