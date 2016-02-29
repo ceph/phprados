@@ -1184,6 +1184,7 @@ PHP_FUNCTION(rados_getxattrs) {
     int oid_len;
     zval *zioctx;
     rados_xattrs_iter_t iter;
+    char *errDesc = NULL;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &zioctx, &oid, &oid_len) == FAILURE) {
         RETURN_FALSE;
@@ -1193,19 +1194,27 @@ PHP_FUNCTION(rados_getxattrs) {
 
     array_init(return_value);
 
-    rados_getxattrs(ioctx_r->io, oid, &iter);
-    while (1) {
-        const char *name;
-        const char *val;
-        size_t len;
-
-        rados_getxattrs_next(iter, &name, &val, &len);
-        if (name == NULL) {
-            break;
-        }
-        add_assoc_stringl_ex(return_value, name, strlen(name)+1, val, len, 1);
+    int response = rados_getxattrs(ioctx_r->io, oid, &iter);
+    if(response<0) {
+        getErrorDescription(&errDesc,response);
+        array_init(return_value);
+        add_assoc_long(return_value, "errCode", (long)-response);
+        add_assoc_string(return_value, "errMessage", errDesc, 0);
     }
+    else {
+        while (1) {
+            const char *name;
+            const char *val;
+            size_t len;
+
+            rados_getxattrs_next(iter, &name, &val, &len);
+            if (name == NULL) {
+                break;
+            }
+            add_assoc_stringl_ex(return_value, name, strlen(name)+1, val, len, 1);
+        }
     rados_getxattrs_end(iter);
+    }
 }
 
 PHP_FUNCTION(rados_objects_list) {
