@@ -567,13 +567,10 @@ PHP_FUNCTION(rados_ioctx_create)
     else {
         ioctx_r = (php_rados_ioctx *)emalloc(sizeof(php_rados_ioctx));
         ioctx_r->io = io;
+        ioctx_r->nspace = NULL;
         ZEND_REGISTER_RESOURCE(return_value, ioctx_r, le_rados_ioctx);
     }
 
-    ioctx_r = (php_rados_ioctx *)emalloc(sizeof(php_rados_ioctx));
-    ioctx_r->io = io;
-    ioctx_r->nspace = NULL;
-    ZEND_REGISTER_RESOURCE(return_value, ioctx_r, le_rados_ioctx);
 }
 
 PHP_FUNCTION(rados_ioctx_destroy)
@@ -640,7 +637,6 @@ PHP_FUNCTION(rados_pool_list)
             b += strlen(b) + 1;
         }
 
-        RETURN_TRUE;
     }
 }
 
@@ -835,7 +831,7 @@ PHP_FUNCTION(rados_write) {
     char *oid=NULL;
     char *buffer=NULL;
     int oid_len;
-    size_t buffer_len;
+    int buffer_len;
     uint64_t offset = 0;
     zval *zioctx;
     int response = 0;
@@ -847,7 +843,7 @@ PHP_FUNCTION(rados_write) {
 
     ZEND_FETCH_RESOURCE(ioctx_r, php_rados_ioctx*, &zioctx, -1, PHP_RADOS_IOCTX_RES_NAME, le_rados_ioctx);
 
-    response = rados_write(ioctx_r->io, oid, buffer, buffer_len, offset);
+    response = rados_write(ioctx_r->io, oid, buffer,(size_t) buffer_len, offset);
 
     if(response<0) {
         getErrorDescription(&errDesc,response);
@@ -979,19 +975,20 @@ PHP_FUNCTION(rados_append) {
     char *oid=NULL;
     char *buffer=NULL;
     int oid_len;
-    size_t buffer_len;
+    int buffer_len;
+    int offset;
     zval *zioctx;
     int response = 0;
     char *errDesc = NULL;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rss|l", &zioctx, &oid, &oid_len, &buffer, &buffer_len) == FAILURE) {
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rss|l", &zioctx, &oid, &oid_len, &buffer, &buffer_len, &offset) == FAILURE) {
         RETURN_FALSE;
     }
 
     ZEND_FETCH_RESOURCE(ioctx_r, php_rados_ioctx*, &zioctx, -1, PHP_RADOS_IOCTX_RES_NAME, le_rados_ioctx);
 
 
-    response = rados_append(ioctx_r->io, oid, buffer, buffer_len);
+    response = rados_append(ioctx_r->io, oid, buffer,(size_t) buffer_len);
     if(response<0) {
         getErrorDescription(&errDesc,response);
         array_init(return_value);
@@ -1065,7 +1062,7 @@ PHP_FUNCTION(rados_getxattr) {
         add_assoc_string(return_value, "errMessage", errDesc, 0);
     }
     else {
-        RETURN_STRINGL(buffer, size, 1);
+        RETURN_STRINGL(buffer, response, 1);
     }
 }
 
@@ -1184,6 +1181,7 @@ PHP_FUNCTION(rados_getxattrs) {
     int oid_len;
     zval *zioctx;
     rados_xattrs_iter_t iter;
+    char *errDesc = NULL;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &zioctx, &oid, &oid_len) == FAILURE) {
         RETURN_FALSE;
@@ -1193,19 +1191,27 @@ PHP_FUNCTION(rados_getxattrs) {
 
     array_init(return_value);
 
-    rados_getxattrs(ioctx_r->io, oid, &iter);
-    while (1) {
-        const char *name;
-        const char *val;
-        size_t len;
-
-        rados_getxattrs_next(iter, &name, &val, &len);
-        if (name == NULL) {
-            break;
-        }
-        add_assoc_stringl_ex(return_value, name, strlen(name)+1, val, len, 1);
+    int response = rados_getxattrs(ioctx_r->io, oid, &iter);
+    if(response<0) {
+        getErrorDescription(&errDesc,response);
+        array_init(return_value);
+        add_assoc_long(return_value, "errCode", (long)-response);
+        add_assoc_string(return_value, "errMessage", errDesc, 0);
     }
+    else {
+        while (1) {
+            const char *name;
+            const char *val;
+            size_t len;
+
+            rados_getxattrs_next(iter, &name, &val, &len);
+            if (name == NULL) {
+                break;
+            }
+            add_assoc_stringl_ex(return_value, name, strlen(name)+1, val, len, 1);
+        }
     rados_getxattrs_end(iter);
+    }
 }
 
 PHP_FUNCTION(rados_objects_list) {
@@ -1620,7 +1626,9 @@ PHP_FUNCTION(rados_ioctx_create2)
 
     ioctx_r = (php_rados_ioctx *)emalloc(sizeof(php_rados_ioctx));
     ioctx_r->io = io;
+    ioctx_r->nspace = NULL;
     ZEND_REGISTER_RESOURCE(return_value, ioctx_r, le_rados_ioctx);
+
 }
 
 PHP_FUNCTION(rados_ioctx_get_id) {
