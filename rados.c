@@ -1196,9 +1196,9 @@ PHP_FUNCTION(rados_get_last_version) {
 PHP_FUNCTION(rados_getxattrs) {
     php_rados_ioctx *ioctx_r;
     zend_string *oid=NULL;
-
     zval *zioctx;
     rados_xattrs_iter_t iter;
+    char *errDesc = NULL;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rS", &zioctx, &oid) == FAILURE) {
         RETURN_FALSE;
