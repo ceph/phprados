@@ -1210,7 +1210,7 @@ PHP_FUNCTION(rados_getxattrs) {
 
     array_init(return_value);
 
-    rados_getxattrs(ioctx_r->io, (char *)oid->val, &iter);
+    int response = rados_getxattrs(ioctx_r->io, (char *)oid->val, &iter);
     if(response<0) {
         getErrorDescription(&errDesc,response);
         array_init(return_value);
