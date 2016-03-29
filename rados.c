@@ -571,13 +571,9 @@ PHP_FUNCTION(rados_ioctx_create)
     else {
         ioctx_r = (php_rados_ioctx *)emalloc(sizeof(php_rados_ioctx));
         ioctx_r->io = io;
-		RETURN_RES(zend_register_resource(ioctx_r, le_rados_ioctx));
-    }
-
-    ioctx_r = (php_rados_ioctx *)emalloc(sizeof(php_rados_ioctx));
-    ioctx_r->io = io;
-    ioctx_r->nspace = NULL;
+        ioctx_r->nspace = NULL;
 	RETURN_RES(zend_register_resource(ioctx_r, le_rados_ioctx));
+    }
 }
 
 PHP_FUNCTION(rados_ioctx_destroy)
@@ -706,9 +702,7 @@ PHP_FUNCTION(rados_pool_create)
 
     if (ZEND_NUM_ARGS() == 3 && Z_TYPE_P(options) == IS_ARRAY) {
         zend_hash_internal_pointer_reset_ex(Z_ARRVAL_P(options), &pos);
-//        while (zend_hash_get_current_data_ex(Z_ARRVAL_P(options), (void **)&entry, &pos) == SUCCESS) {
         while (zend_hash_get_current_data_ex(Z_ARRVAL_P(options),  &pos) == SUCCESS) {
-//            if (zend_hash_get_current_key_ex(Z_ARRVAL_P(options), &key, &key_len, &option, 0, &pos) != HASH_KEY_IS_STRING) {
             if (zend_hash_get_current_key_ex(Z_ARRVAL_P(options), &key, 0, &pos) != HASH_KEY_IS_STRING) {
                 php_error_docref(NULL TSRMLS_CC, E_WARNING, "Array keys must be strings");
                 RETURN_NULL();
