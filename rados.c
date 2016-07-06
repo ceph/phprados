@@ -178,8 +178,8 @@ ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_rados_objects_list, 0, 0, 1)
     ZEND_ARG_INFO(0, ioctx)
-    ZEND_ARG_INFO(0, start_object_name)
     ZEND_ARG_INFO(0, limit)
+    ZEND_ARG_INFO(0, start_object_name)
 ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_INFO(arginfo_rados_ioctx_snap_create, 0)
@@ -1225,7 +1225,7 @@ PHP_FUNCTION(rados_objects_list) {
     uint64_t limit = 0;
     int results = 0;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r|sl", &zioctx, &start_object_name, &start_object_name_len, &limit) == FAILURE) {
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r|ls", &zioctx, &limit, &start_object_name, &start_object_name_len) == FAILURE) {
         RETURN_FALSE;
     }
 
