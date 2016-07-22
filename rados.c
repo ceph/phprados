@@ -1251,7 +1251,7 @@ PHP_FUNCTION(rados_objects_list) {
         }
 
         // Skip the first first one. 
-        if (results > 0) {
+        if (!start_object_name || results > 0) {
             add_next_index_string(return_value, oid, 1);
         }
 
