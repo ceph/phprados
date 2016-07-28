@@ -1242,19 +1242,20 @@ PHP_FUNCTION(rados_objects_list) {
     const char *oid;
     bool found_hash = false;
 
-    while (rados_objects_list_next(ctx, &oid, NULL) == 0 && (results <= limit || limit == 0)) {
-        // Check if we've found the object to start from yet
+    while (rados_objects_list_next(ctx, &oid, NULL) == 0 && (results < limit || limit == 0)) {
         if (start_object_name && !found_hash && strcmp(start_object_name, oid) != 0) {
-           continue;
+            // If they've specified an object to start from, and it doesnt match, then skip
+            continue;
+        } else if (start_object_name && !found_hash && strcmp(start_object_name, oid) == 0) {
+            // If this object matches exactly we want to skip it
+            found_hash = true;
+            continue;
         } else {
-           found_hash = true;
+            // We've been past the matching one (or no match was given)
+            found_hash = true;
         }
 
-        // Skip the first first one. 
-        if (!start_object_name || results > 0) {
-            add_next_index_string(return_value, oid, 1);
-        }
-
+        add_next_index_string(return_value, oid, 1);
         results++;
     }
 
