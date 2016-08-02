@@ -176,8 +176,10 @@ ZEND_BEGIN_ARG_INFO(arginfo_rados_getxattrs, 0)
     ZEND_ARG_INFO(0, oid)
 ZEND_END_ARG_INFO()
 
-ZEND_BEGIN_ARG_INFO(arginfo_rados_objects_list, 0)
+ZEND_BEGIN_ARG_INFO_EX(arginfo_rados_objects_list, 0, 0, 1)
     ZEND_ARG_INFO(0, ioctx)
+    ZEND_ARG_INFO(0, limit)
+    ZEND_ARG_INFO(0, start_object_name)
 ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_INFO(arginfo_rados_ioctx_snap_create, 0)
@@ -1218,22 +1220,48 @@ PHP_FUNCTION(rados_objects_list) {
     php_rados_ioctx *ioctx_r;
     zval *zioctx;
     rados_list_ctx_t ctx;
+    char *start_object_name = NULL;
+    int *start_object_name_len = 0;
+    uint64_t limit = 0;
+    int results = 0;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &zioctx) == FAILURE) {
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r|ls", &zioctx, &limit, &start_object_name, &start_object_name_len) == FAILURE) {
         RETURN_FALSE;
     }
 
-    ZEND_FETCH_RESOURCE(ioctx_r, php_rados_ioctx*, &zioctx, -1, PHP_RADOS_IOCTX_RES_NAME, le_rados_ioctx);
+    if (limit < 0) {
+        limit = 0;
+    }
 
     array_init(return_value);
 
+    ZEND_FETCH_RESOURCE(ioctx_r, php_rados_ioctx*, &zioctx, -1, PHP_RADOS_IOCTX_RES_NAME, le_rados_ioctx);
+    
     rados_objects_list_open(ioctx_r->io, &ctx);
+
     const char *oid;
-    while (rados_objects_list_next(ctx, &oid, NULL) == 0) {
+    bool found_hash = false;
+
+    while (rados_objects_list_next(ctx, &oid, NULL) == 0 && (results < limit || limit == 0)) {
+        if (start_object_name && !found_hash && strcmp(start_object_name, oid) != 0) {
+            // If they've specified an object to start from, and it doesnt match, then skip
+            continue;
+        } else if (start_object_name && !found_hash && strcmp(start_object_name, oid) == 0) {
+            // If this object matches exactly we want to skip it
+            found_hash = true;
+            continue;
+        } else {
+            // We've been past the matching one (or no match was given)
+            found_hash = true;
+        }
+
         add_next_index_string(return_value, oid, 1);
+        results++;
     }
+
     rados_objects_list_close(ctx);
 }
+
 
 PHP_FUNCTION(rados_ioctx_snap_create) {
     php_rados_ioctx *ioctx_r;
@@ -1253,7 +1281,6 @@ PHP_FUNCTION(rados_ioctx_snap_create) {
     }
 
     ZEND_FETCH_RESOURCE(ioctx_r, php_rados_ioctx*, &zioctx, -1, PHP_RADOS_IOCTX_RES_NAME, le_rados_ioctx);
-
 
     response = rados_ioctx_snap_create(ioctx_r->io, snapname);
 
