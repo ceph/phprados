@@ -83,6 +83,8 @@ PHP_FUNCTION(rados_ioctx_get_pool_name);
 PHP_FUNCTION(rados_ioctx_get_namespace);
 PHP_FUNCTION(rados_ioctx_set_namespace);
 
+PHP_FUNCTION(rados_ioctx_pool_required_alignment);
+
 extern zend_module_entry rados_module_entry;
 #define phpext_rados_ptr &rados_module_entry;
 
