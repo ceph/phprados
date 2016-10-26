@@ -234,6 +234,13 @@ class RadosTest extends PHPUnit_Framework_TestCase {
         rados_ioctx_set_namespace($ioctx, NULL);
         $this->assertNull(rados_ioctx_get_namespace($ioctx));
     }
+
+    /**
+     * @depends testRadosCreateIoCTX
+     */
+    public function testRadosPoolRequiredAlignment($ioctx) {
+        $this->assertFalse(rados_ioctx_pool_required_alignment($ioctx));
+    }
 }
 
 ?>
