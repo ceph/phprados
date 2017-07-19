@@ -1,5 +1,5 @@
 /*
- * phprados - A PHP5 extension for using librados
+ * phprados - A PHP7 extension for using librados
  *
  * Copyright (C) 2011 Wido den Hollander <wido@widodh.nl>
  *
@@ -344,61 +344,59 @@ PHP_FUNCTION(rados_create)
 {
     php_rados_cluster *cluster_r;
     rados_t cluster;
-    char *id = NULL;
-    int id_len = 0;
+    zend_string *id = NULL;
+
     int response = 0;
     char *errDesc = NULL;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|s", &id, &id_len) == FAILURE) {
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|S", &id) == FAILURE) {
         RETURN_NULL();
     }
 
-    response = rados_create(&cluster, id);
+    response = rados_create(&cluster, (char *)id->val);
 
     if(response < 0) {
         getErrorDescription(&errDesc,response);
         array_init(return_value);
         add_assoc_long(return_value, "errCode", (long)-response);
-        add_assoc_string(return_value, "errMessage", errDesc, 0);
+        add_assoc_string(return_value, "errMessage", errDesc);
     }
     else {
         cluster_r = (php_rados_cluster *)emalloc(sizeof(php_rados_cluster));
         cluster_r->cluster = cluster;
         cluster_r->connected = false;
-        ZEND_REGISTER_RESOURCE(return_value, cluster_r, le_rados_cluster);
+		RETURN_RES(zend_register_resource(cluster_r, le_rados_cluster));
     }
-
 }
 
 PHP_FUNCTION(rados_create2)
 {
     php_rados_cluster *cluster_r;
     rados_t cluster;
-    char *name = NULL;
-    char *clustername = NULL;
-    int name_len = 0;
-    int clustername_len = 0;
+    zend_string *name = NULL;
+    zend_string *clustername = NULL;
+
     int flags;
     int response = 0;
     char *errDesc = NULL;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ss|l", &clustername, &clustername_len, &name, &name_len, &flags) == FAILURE) {
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "SS|l", &clustername, &name, &flags) == FAILURE) {
         RETURN_NULL();
     }
 
-    response =  rados_create2(&cluster, clustername, name, flags);
+    response =  rados_create2(&cluster, (char *)clustername->val,(char *) name->val, flags);
 
     if (response < 0) {
         getErrorDescription(&errDesc,response);
         array_init(return_value);
         add_assoc_long(return_value, "errCode", (long)-response);
-        add_assoc_string(return_value, "errMessage", errDesc, 0);
+        add_assoc_string(return_value, "errMessage", errDesc);
     }
     else {
         cluster_r = (php_rados_cluster *)emalloc(sizeof(php_rados_cluster));
         cluster_r->cluster = cluster;
         cluster_r->connected = false;
-        ZEND_REGISTER_RESOURCE(return_value, cluster_r, le_rados_cluster);
+		RETURN_RES(zend_register_resource(cluster_r, le_rados_cluster));
     }
 }
 
@@ -410,8 +408,10 @@ PHP_FUNCTION(rados_shutdown)
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &zcluster) == FAILURE) {
         RETURN_FALSE;
     }
-
-    ZEND_FETCH_RESOURCE(cluster_r, php_rados_cluster*, &zcluster, -1, PHP_RADOS_CLUSTER_RES_NAME, le_rados_cluster);
+    
+	if ((cluster_r = (php_rados_cluster *) zend_fetch_resource(Z_RES_P(zcluster), PHP_RADOS_CLUSTER_RES_NAME, le_rados_cluster)) == NULL) {
+        RETURN_FALSE;
+    }
 
     rados_shutdown(cluster_r->cluster);
     cluster_r->connected = false;
@@ -430,17 +430,17 @@ PHP_FUNCTION(rados_connect)
         RETURN_FALSE;
     }
 
-    ZEND_FETCH_RESOURCE(cluster_r, php_rados_cluster*, &zcluster, -1, PHP_RADOS_CLUSTER_RES_NAME, le_rados_cluster);
-
+	if ((cluster_r = (php_rados_cluster *) zend_fetch_resource(Z_RES_P(zcluster), PHP_RADOS_CLUSTER_RES_NAME, le_rados_cluster)) == NULL) {
+        RETURN_FALSE;
+    }
 
     response = rados_connect(cluster_r->cluster);
-
 
     if(response<0) {
         getErrorDescription(&errDesc,response);
         array_init(return_value);
         add_assoc_long(return_value, "errCode", (long)-response);
-        add_assoc_string(return_value, "errMessage", errDesc, 0);
+        add_assoc_string(return_value, "errMessage", errDesc);
 
     }
     else {
@@ -453,27 +453,28 @@ PHP_FUNCTION(rados_conf_read_file)
 {
     php_rados_cluster *cluster_r;
     zval *zcluster;
-    char *path = NULL;
-    int path_len = 0;
+    zend_string *path = NULL;
+
     int response = 0;
     char *errDesc = NULL;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &zcluster, &path, &path_len) == FAILURE) {
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rS", &zcluster, &path ) == FAILURE) {
         RETURN_NULL();
     }
 
-    ZEND_FETCH_RESOURCE(cluster_r, php_rados_cluster*, &zcluster, -1, PHP_RADOS_CLUSTER_RES_NAME, le_rados_cluster);
+    if ((cluster_r = (php_rados_cluster *) zend_fetch_resource(Z_RES_P(zcluster), PHP_RADOS_CLUSTER_RES_NAME, le_rados_cluster)) == NULL) {
+        RETURN_FALSE;
+    }
 
     verifyConnectionState(cluster_r->connected, false);
 
-
-    response = rados_conf_read_file(cluster_r->cluster, path);
+    response = rados_conf_read_file(cluster_r->cluster, (char *)path->val);
 
     if(response<0) {
         getErrorDescription(&errDesc,response);
         array_init(return_value);
         add_assoc_long(return_value, "errCode", (long)-response);
-        add_assoc_string(return_value, "errMessage", errDesc, 0);
+        add_assoc_string(return_value, "errMessage", errDesc);
     }
     else {
         RETURN_TRUE;
@@ -484,27 +485,27 @@ PHP_FUNCTION(rados_conf_set)
 {
     php_rados_cluster *cluster_r;
     zval *zcluster;
-    char *option, *value = NULL;
-    int option_len, value_len = 0;
+    zend_string *option, *value = NULL;
+
     int response = 0;
     char *errDesc = NULL;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rss", &zcluster, &option, &option_len, &value, &value_len) == FAILURE) {
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rSS", &zcluster, &option, &value) == FAILURE) {
         RETURN_NULL();
     }
 
-    ZEND_FETCH_RESOURCE(cluster_r, php_rados_cluster*, &zcluster, -1, PHP_RADOS_CLUSTER_RES_NAME, le_rados_cluster);
+    if ((cluster_r = (php_rados_cluster *) zend_fetch_resource(Z_RES_P(zcluster), PHP_RADOS_CLUSTER_RES_NAME, le_rados_cluster)) == NULL) {
+        RETURN_FALSE;
+    }
 
     verifyConnectionState(cluster_r->connected, false);
 
-
-    response = rados_conf_set(cluster_r->cluster, option, value);
+    response = rados_conf_set(cluster_r->cluster,(char *) option->val,(char *) value->val);
     if(response<0) {
         getErrorDescription(&errDesc,response);
         array_init(return_value);
         add_assoc_long(return_value, "errCode", (long)-response);
-        add_assoc_string(return_value, "errMessage", errDesc, 0);
-
+        add_assoc_string(return_value, "errMessage", errDesc);
     }
     else {
         RETURN_TRUE;
@@ -515,31 +516,30 @@ PHP_FUNCTION(rados_conf_get)
 {
     php_rados_cluster *cluster_r;
     zval *zcluster;
-    char *option = NULL;
-    int option_len = 0;
+    zend_string *option = NULL;
+
     char value[256];
     int response = 0;
     char *errDesc = NULL;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &zcluster, &option, &option_len) == FAILURE) {
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rS", &zcluster, &option) == FAILURE) {
         RETURN_NULL();
     }
 
-    ZEND_FETCH_RESOURCE(cluster_r, php_rados_cluster*, &zcluster, -1, PHP_RADOS_CLUSTER_RES_NAME, le_rados_cluster);
+    if ((cluster_r = (php_rados_cluster *) zend_fetch_resource(Z_RES_P(zcluster), PHP_RADOS_CLUSTER_RES_NAME, le_rados_cluster)) == NULL) {
+        RETURN_FALSE;
+    }
 
-
-    response = rados_conf_get(cluster_r->cluster, option, value, sizeof(value));
-
+    response = rados_conf_get(cluster_r->cluster,(char *) option->val, value, sizeof(value));
 
     if(response<0) {
         getErrorDescription(&errDesc,response);
         array_init(return_value);
         add_assoc_long(return_value, "errCode", (long)-response);
-        add_assoc_string(return_value, "errMessage", errDesc, 0);
-
+        add_assoc_string(return_value, "errMessage", errDesc);
     }
     else {
-        RETURN_STRINGL(value, strlen(value), 1);
+        RETURN_STRINGL(value, strlen(value));
     }
 }
 
@@ -549,35 +549,35 @@ PHP_FUNCTION(rados_ioctx_create)
     php_rados_ioctx *ioctx_r;
     zval *zcluster;
     rados_ioctx_t io;
-    char *pool = NULL;
-    int pool_len = 0;
+    zend_string *pool = NULL;
+
     int response = 0;
     char *errDesc = NULL;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &zcluster, &pool, &pool_len) == FAILURE) {
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rS", &zcluster, &pool) == FAILURE) {
         RETURN_NULL();
     }
 
-    ZEND_FETCH_RESOURCE(cluster_r, php_rados_cluster*, &zcluster, -1, PHP_RADOS_CLUSTER_RES_NAME, le_rados_cluster);
+	if ((cluster_r = (php_rados_cluster *) zend_fetch_resource(Z_RES_P(zcluster), PHP_RADOS_CLUSTER_RES_NAME, le_rados_cluster)) == NULL) {
+        RETURN_FALSE;
+    }
 
     verifyConnectionState(cluster_r->connected, true);
 
-
-    response = rados_ioctx_create(cluster_r->cluster, pool, &io);
+    response = rados_ioctx_create(cluster_r->cluster, (char *)pool->val, &io);
 
     if(response<0) {
         getErrorDescription(&errDesc,response);
         array_init(return_value);
         add_assoc_long(return_value, "errCode", (long)-response);
-        add_assoc_string(return_value, "errMessage", errDesc, 0);
+        add_assoc_string(return_value, "errMessage", errDesc);
     }
     else {
         ioctx_r = (php_rados_ioctx *)emalloc(sizeof(php_rados_ioctx));
         ioctx_r->io = io;
-        ioctx_r->nspace = NULL;
-        ZEND_REGISTER_RESOURCE(return_value, ioctx_r, le_rados_ioctx);
+		ioctx_r->nspace = NULL;
+		RETURN_RES(zend_register_resource(ioctx_r, le_rados_ioctx));
     }
-
 }
 
 PHP_FUNCTION(rados_ioctx_destroy)
@@ -589,7 +589,9 @@ PHP_FUNCTION(rados_ioctx_destroy)
         RETURN_NULL();
     }
 
-    ZEND_FETCH_RESOURCE(ioctx_r, php_rados_ioctx*, &zioctx, -1, PHP_RADOS_IOCTX_RES_NAME, le_rados_ioctx);
+	if ((ioctx_r = (php_rados_ioctx *) zend_fetch_resource(Z_RES_P(zioctx), PHP_RADOS_IOCTX_RES_NAME, le_rados_ioctx)) == NULL) {
+        RETURN_FALSE;
+    }
 
     rados_ioctx_destroy(ioctx_r->io);
 
@@ -608,7 +610,9 @@ PHP_FUNCTION(rados_pool_list)
         RETURN_NULL();
     }
 
-    ZEND_FETCH_RESOURCE(cluster_r, php_rados_cluster*, &zcluster, -1, PHP_RADOS_CLUSTER_RES_NAME, le_rados_cluster);
+	if ((cluster_r = (php_rados_cluster *) zend_fetch_resource(Z_RES_P(zcluster), PHP_RADOS_CLUSTER_RES_NAME, le_rados_cluster)) == NULL) {
+        RETURN_FALSE;
+    }
 
     verifyConnectionState(cluster_r->connected, true);
 
@@ -623,7 +627,7 @@ PHP_FUNCTION(rados_pool_list)
         getErrorDescription(&errDesc,r);
         array_init(return_value);
         add_assoc_long(return_value, "errCode", (long)-r);
-        add_assoc_string(return_value, "errMessage", errDesc, 0);
+        add_assoc_string(return_value, "errMessage", errDesc);
     }
     else {
         /*@TODO check for the buffer pool size for size required*/
@@ -632,7 +636,6 @@ PHP_FUNCTION(rados_pool_list)
             RETURN_FALSE;
         }
 
-
         array_init(return_value);
         const char *b = buff;
         while (1) {
@@ -640,10 +643,10 @@ PHP_FUNCTION(rados_pool_list)
                 break;
             }
 
-            add_next_index_string(return_value, b, 1);
+            add_next_index_string(return_value, b);
             b += strlen(b) + 1;
         }
-
+        RETURN_TRUE;
     }
 }
 
@@ -651,27 +654,28 @@ PHP_FUNCTION(rados_pool_lookup)
 {
     php_rados_cluster *cluster_r;
     zval *zcluster;
-    char *pool = NULL;
-    int pool_len = 0;
+    zend_string *pool = NULL;
+
     uint64_t pool_id = 0;
     char *errDesc = NULL;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &zcluster, &pool, &pool_len) == FAILURE) {
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rS", &zcluster, &pool) == FAILURE) {
         RETURN_NULL();
     }
 
-    ZEND_FETCH_RESOURCE(cluster_r, php_rados_cluster*, &zcluster, -1, PHP_RADOS_CLUSTER_RES_NAME, le_rados_cluster);
+	if ((cluster_r = (php_rados_cluster *) zend_fetch_resource(Z_RES_P(zcluster), PHP_RADOS_CLUSTER_RES_NAME, le_rados_cluster)) == NULL) {
+        RETURN_FALSE;
+    }
 
     verifyConnectionState(cluster_r->connected, true);
 
-    pool_id = rados_pool_lookup(cluster_r->cluster, pool);
+    pool_id = rados_pool_lookup(cluster_r->cluster, (char *)pool->val);
 
     if(pool_id<0) {
         getErrorDescription(&errDesc,(long)pool_id);
         array_init(return_value);
         add_assoc_long(return_value, "errCode", (long)-pool_id);
-        add_assoc_string(return_value, "errMessage", errDesc, 0);
-
+        add_assoc_string(return_value, "errMessage", errDesc);
     }
     else {
         RETURN_LONG(pool_id);
@@ -684,25 +688,25 @@ PHP_FUNCTION(rados_pool_create)
     zval *options;
     zval **entry;
     php_rados_cluster *cluster_r;
-    char *pool = NULL;
+    zend_string *pool = NULL;
     char *key;
     uint key_len;
     int auid = -1;
     int crushrule = -1;
-    int pool_len = 0;
+
     long option;
     HashPosition pos;
     int response = 0;
     char *errDesc = NULL;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs|a", &zcluster, &pool, &pool_len, &options) == FAILURE) {
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rS|a", &zcluster, &pool, &options) == FAILURE) {
         RETURN_NULL();
     }
 
     if (ZEND_NUM_ARGS() == 3 && Z_TYPE_P(options) == IS_ARRAY) {
         zend_hash_internal_pointer_reset_ex(Z_ARRVAL_P(options), &pos);
-        while (zend_hash_get_current_data_ex(Z_ARRVAL_P(options), (void **)&entry, &pos) == SUCCESS) {
-            if (zend_hash_get_current_key_ex(Z_ARRVAL_P(options), &key, &key_len, &option, 0, &pos) != HASH_KEY_IS_STRING) {
+        while (zend_hash_get_current_data_ex(Z_ARRVAL_P(options),  &pos) == SUCCESS) {
+            if (zend_hash_get_current_key_ex(Z_ARRVAL_P(options), &key, 0, &pos) != HASH_KEY_IS_STRING) {
                 php_error_docref(NULL TSRMLS_CC, E_WARNING, "Array keys must be strings");
                 RETURN_NULL();
             }
@@ -716,32 +720,32 @@ PHP_FUNCTION(rados_pool_create)
                     crushrule = Z_LVAL_PP(entry);
                 }
             }
-
             zend_hash_move_forward_ex(Z_ARRVAL_P(options), &pos);
         }
     }
 
-    ZEND_FETCH_RESOURCE(cluster_r, php_rados_cluster*, &zcluster, -1, PHP_RADOS_CLUSTER_RES_NAME, le_rados_cluster);
+	if ((cluster_r = (php_rados_cluster *) zend_fetch_resource(Z_RES_P(zcluster), PHP_RADOS_CLUSTER_RES_NAME, le_rados_cluster)) == NULL) {
+        RETURN_FALSE;
+    }
 
     verifyConnectionState(cluster_r->connected, true);
 
     int r;
     if ((auid > -1) && (crushrule > -1)) {
-        r = rados_pool_create_with_all(cluster_r->cluster, pool, auid, crushrule);
+        r = rados_pool_create_with_all(cluster_r->cluster, (char *)pool->val, auid, crushrule);
     } else if (auid > -1) {
-        r = rados_pool_create_with_auid(cluster_r->cluster, pool, auid);
+        r = rados_pool_create_with_auid(cluster_r->cluster, (char *)pool->val, auid);
     } else if (crushrule > -1) {
-        r = rados_pool_create_with_crush_rule(cluster_r->cluster, pool, crushrule);
+        r = rados_pool_create_with_crush_rule(cluster_r->cluster, (char *)pool->val, crushrule);
     } else  {
-        r = rados_pool_create(cluster_r->cluster, pool);
+        r = rados_pool_create(cluster_r->cluster, (char *)pool->val);
     }
-
 
     if(r < 0) {
         getErrorDescription(&errDesc,r);
         array_init(return_value);
         add_assoc_long(return_value, "errCode", (long)-r);
-        add_assoc_string(return_value, "errMessage", errDesc, 0);
+        add_assoc_string(return_value, "errMessage", errDesc);
     }
     else {
         RETURN_TRUE;
@@ -752,28 +756,28 @@ PHP_FUNCTION(rados_pool_delete)
 {
     php_rados_cluster *cluster_r;
     zval *zcluster;
-    char *pool = NULL;
-    int pool_len = 0;
+    zend_string *pool = NULL;
+
     int response = 0;
     char *errDesc = NULL;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &zcluster, &pool, &pool_len) == FAILURE) {
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rS", &zcluster, &pool) == FAILURE) {
         RETURN_NULL();
     }
 
-    ZEND_FETCH_RESOURCE(cluster_r, php_rados_cluster*, &zcluster, -1, PHP_RADOS_CLUSTER_RES_NAME, le_rados_cluster);
+	if ((cluster_r = (php_rados_cluster *) zend_fetch_resource(Z_RES_P(zcluster), PHP_RADOS_CLUSTER_RES_NAME, le_rados_cluster)) == NULL) {
+        RETURN_FALSE;
+    }
 
     verifyConnectionState(cluster_r->connected, true);
 
-
-    response = rados_pool_delete(cluster_r->cluster, pool);
-
+    response = rados_pool_delete(cluster_r->cluster,(char *) pool->val);
 
     if(response<0) {
         getErrorDescription(&errDesc,response);
         array_init(return_value);
         add_assoc_long(return_value, "errCode", (long)-response);
-        add_assoc_string(return_value, "errMessage", errDesc, 0);
+        add_assoc_string(return_value, "errMessage", errDesc);
     }
     else {
         RETURN_TRUE;
@@ -792,14 +796,16 @@ PHP_FUNCTION(rados_ioctx_pool_set_auid)
         RETURN_NULL();
     }
 
-    ZEND_FETCH_RESOURCE(ioctx_r, php_rados_ioctx*, &zioctx, -1, PHP_RADOS_IOCTX_RES_NAME, le_rados_ioctx);
+    if ((ioctx_r = (php_rados_ioctx *) zend_fetch_resource(Z_RES_P(zioctx), PHP_RADOS_IOCTX_RES_NAME, le_rados_ioctx)) == NULL) {
+        RETURN_FALSE;
+    }
 
     response = rados_ioctx_pool_set_auid(ioctx_r->io, auid);
     if(response<0) {
         getErrorDescription(&errDesc,response);
         array_init(return_value);
         add_assoc_long(return_value, "errCode", (long)-response);
-        add_assoc_string(return_value, "errMessage", errDesc, 0);
+        add_assoc_string(return_value, "errMessage", errDesc);
     }
     else {
         RETURN_TRUE;
@@ -818,15 +824,16 @@ PHP_FUNCTION(rados_ioctx_pool_get_auid)
         RETURN_NULL();
     }
 
-    ZEND_FETCH_RESOURCE(ioctx_r, php_rados_ioctx*, &zioctx, -1, PHP_RADOS_IOCTX_RES_NAME, le_rados_ioctx);
-
+	if ((ioctx_r = (php_rados_ioctx *) zend_fetch_resource(Z_RES_P(zioctx), PHP_RADOS_IOCTX_RES_NAME, le_rados_ioctx)) == NULL) {
+        RETURN_FALSE;
+    }
 
     response = rados_ioctx_pool_get_auid(ioctx_r->io, &auid);
     if(response<0) {
         getErrorDescription(&errDesc,response);
         array_init(return_value);
         add_assoc_long(return_value, "errCode", (long)-response);
-        add_assoc_string(return_value, "errMessage", errDesc, 0);
+        add_assoc_string(return_value, "errMessage", errDesc);
     }
     else {
         RETURN_LONG(auid);
@@ -835,28 +842,30 @@ PHP_FUNCTION(rados_ioctx_pool_get_auid)
 
 PHP_FUNCTION(rados_write) {
     php_rados_ioctx *ioctx_r;
-    char *oid=NULL;
+    zend_string *oid=NULL;
     char *buffer=NULL;
-    int oid_len;
-    int buffer_len;
+
+    size_t buffer_len;
     uint64_t offset = 0;
     zval *zioctx;
     int response = 0;
     char *errDesc = NULL;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rss|l", &zioctx, &oid, &oid_len, &buffer, &buffer_len, &offset) == FAILURE) {
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rSs|l", &zioctx, &oid, &buffer, &buffer_len, &offset) == FAILURE) {
         RETURN_FALSE;
     }
 
-    ZEND_FETCH_RESOURCE(ioctx_r, php_rados_ioctx*, &zioctx, -1, PHP_RADOS_IOCTX_RES_NAME, le_rados_ioctx);
+	if ((ioctx_r = (php_rados_ioctx *) zend_fetch_resource(Z_RES_P(zioctx), PHP_RADOS_IOCTX_RES_NAME, le_rados_ioctx)) == NULL) {
+        RETURN_FALSE;
+    }
 
-    response = rados_write(ioctx_r->io, oid, buffer,(size_t) buffer_len, offset);
+    response = rados_write(ioctx_r->io, (char *)oid->val, buffer, buffer_len, offset);
 
     if(response<0) {
         getErrorDescription(&errDesc,response);
         array_init(return_value);
         add_assoc_long(return_value, "errCode", (long)-response);
-        add_assoc_string(return_value, "errMessage", errDesc, 0);
+        add_assoc_string(return_value, "errMessage", errDesc);
     }
     else {
         RETURN_TRUE;
@@ -865,26 +874,28 @@ PHP_FUNCTION(rados_write) {
 
 PHP_FUNCTION(rados_write_full) {
     php_rados_ioctx *ioctx_r;
-    char *oid = NULL;
+    zend_string *oid = NULL;
     char *buffer = NULL;
-    int oid_len = 0;
+
     size_t buffer_len = 0;
     zval *zioctx;
     int response = 0;
     char *errDesc = NULL;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rss", &zioctx, &oid, &oid_len, &buffer, &buffer_len) == FAILURE) {
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rSs", &zioctx, &oid, &buffer, &buffer_len) == FAILURE) {
         RETURN_FALSE;
     }
 
-    ZEND_FETCH_RESOURCE(ioctx_r, php_rados_ioctx*, &zioctx, -1, PHP_RADOS_IOCTX_RES_NAME, le_rados_ioctx);
+	if ((ioctx_r = (php_rados_ioctx *) zend_fetch_resource(Z_RES_P(zioctx), PHP_RADOS_IOCTX_RES_NAME, le_rados_ioctx)) == NULL) {
+        RETURN_FALSE;
+    }
 
-    response = rados_write_full(ioctx_r->io, oid, buffer, buffer_len);
+    response = rados_write_full(ioctx_r->io, (char *)oid->val, buffer, buffer_len);
     if(response<0) {
         getErrorDescription(&errDesc,response);
         array_init(return_value);
         add_assoc_long(return_value, "errCode", (long)-response);
-        add_assoc_string(return_value, "errMessage", errDesc, 0);
+        add_assoc_string(return_value, "errMessage", errDesc);
     }
     else {
         RETURN_TRUE;
@@ -893,57 +904,60 @@ PHP_FUNCTION(rados_write_full) {
 
 PHP_FUNCTION(rados_read) {
     php_rados_ioctx *ioctx_r;
-    char *oid=NULL;
-    int oid_len;
+    zend_string *oid=NULL;
+
     size_t size;
     zval *zioctx;
     uint64_t offset = 0;
     int response = 0;
     char *errDesc = NULL;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rsl|l", &zioctx, &oid, &oid_len, &size, &offset) == FAILURE) {
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rSl|l", &zioctx, &oid, &size, &offset) == FAILURE) {
         RETURN_FALSE;
     }
 
     //char buffer[size];
     char *buffer = emalloc(size * sizeof(char));
 
-    ZEND_FETCH_RESOURCE(ioctx_r, php_rados_ioctx*, &zioctx, -1, PHP_RADOS_IOCTX_RES_NAME, le_rados_ioctx);
+	if ((ioctx_r = (php_rados_ioctx *) zend_fetch_resource(Z_RES_P(zioctx), PHP_RADOS_IOCTX_RES_NAME, le_rados_ioctx)) == NULL) {
+        RETURN_FALSE;
+    }
 
-    response = rados_read(ioctx_r->io, oid, buffer, size, offset);
+    response = rados_read(ioctx_r->io,(char *) oid->val, buffer, size, offset);
     if(response<0) {
         efree(buffer); //free the buffer is rados_read fails
         getErrorDescription(&errDesc,response);
         array_init(return_value);
         add_assoc_long(return_value, "errCode", (long)-response);
-        add_assoc_string(return_value, "errMessage", errDesc, 0);
+        add_assoc_string(return_value, "errMessage", errDesc);
     }
     else {
-        RETURN_STRINGL(buffer, response, 0);
+        RETURN_STRINGL(buffer, response);
     }
-
 }
 
 PHP_FUNCTION(rados_remove) {
     php_rados_ioctx *ioctx_r;
-    char *oid=NULL;
-    int oid_len;
+    zend_string *oid=NULL;
+
     zval *zioctx;
     int response = 0;
     char *errDesc = NULL;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &zioctx, &oid, &oid_len) == FAILURE) {
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rS", &zioctx, &oid) == FAILURE) {
         RETURN_FALSE;
     }
 
-    ZEND_FETCH_RESOURCE(ioctx_r, php_rados_ioctx*, &zioctx, -1, PHP_RADOS_IOCTX_RES_NAME, le_rados_ioctx);
+    if ((ioctx_r = (php_rados_ioctx *) zend_fetch_resource(Z_RES_P(zioctx), PHP_RADOS_IOCTX_RES_NAME, le_rados_ioctx)) == NULL) {
+        RETURN_FALSE;
+    }
 
-    response = rados_remove(ioctx_r->io, oid);
+    response = rados_remove(ioctx_r->io, (char *)oid->val);
     if(response<0) {
         getErrorDescription(&errDesc,response);
         array_init(return_value);
         add_assoc_long(return_value, "errCode", (long)-response);
-        add_assoc_string(return_value, "errMessage", errDesc, 0);
+        add_assoc_string(return_value, "errMessage", errDesc);
     }
     else {
         RETURN_TRUE;
@@ -952,25 +966,27 @@ PHP_FUNCTION(rados_remove) {
 
 PHP_FUNCTION(rados_trunc) {
     php_rados_ioctx *ioctx_r;
-    char *oid=NULL;
-    int oid_len;
+    zend_string *oid=NULL;
+
     size_t size;
     zval *zioctx;
     int response = 0;
     char *errDesc = NULL;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rsl|l", &zioctx, &oid, &oid_len, &size) == FAILURE) {
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rSl|l", &zioctx, &oid, &size) == FAILURE) {
         RETURN_FALSE;
     }
 
-    ZEND_FETCH_RESOURCE(ioctx_r, php_rados_ioctx*, &zioctx, -1, PHP_RADOS_IOCTX_RES_NAME, le_rados_ioctx);
+    if ((ioctx_r = (php_rados_ioctx *) zend_fetch_resource(Z_RES_P(zioctx), PHP_RADOS_IOCTX_RES_NAME, le_rados_ioctx)) == NULL) {
+        RETURN_FALSE;
+    }
 
-    response = rados_trunc(ioctx_r->io, oid, size);
+    response = rados_trunc(ioctx_r->io, (char *)oid->val, size);
     if(response<0) {
         getErrorDescription(&errDesc,response);
         array_init(return_value);
         add_assoc_long(return_value, "errCode", (long)-response);
-        add_assoc_string(return_value, "errMessage", errDesc, 0);
+        add_assoc_string(return_value, "errMessage", errDesc);
     }
     else {
         RETURN_TRUE;
@@ -979,28 +995,29 @@ PHP_FUNCTION(rados_trunc) {
 
 PHP_FUNCTION(rados_append) {
     php_rados_ioctx *ioctx_r;
-    char *oid=NULL;
+    zend_string *oid=NULL;
     char *buffer=NULL;
-    int oid_len;
-    int buffer_len;
-    int offset;
+    size_t buffer_len;
+
     zval *zioctx;
     int response = 0;
     char *errDesc = NULL;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rss|l", &zioctx, &oid, &oid_len, &buffer, &buffer_len, &offset) == FAILURE) {
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rSs|l", &zioctx, &oid, &buffer, &buffer_len) == FAILURE) {
         RETURN_FALSE;
     }
 
-    ZEND_FETCH_RESOURCE(ioctx_r, php_rados_ioctx*, &zioctx, -1, PHP_RADOS_IOCTX_RES_NAME, le_rados_ioctx);
+    if ((ioctx_r = (php_rados_ioctx *) zend_fetch_resource(Z_RES_P(zioctx), PHP_RADOS_IOCTX_RES_NAME, le_rados_ioctx)) == NULL) {
+        RETURN_FALSE;
+    }
+	
 
-
-    response = rados_append(ioctx_r->io, oid, buffer,(size_t) buffer_len);
+    response = rados_append(ioctx_r->io, (char *)oid->val, buffer, buffer_len);
     if(response<0) {
         getErrorDescription(&errDesc,response);
         array_init(return_value);
         add_assoc_long(return_value, "errCode", (long)-response);
-        add_assoc_string(return_value, "errMessage", errDesc, 0);
+        add_assoc_string(return_value, "errMessage", errDesc);
     }
     else {
         RETURN_TRUE;
@@ -1009,10 +1026,8 @@ PHP_FUNCTION(rados_append) {
 
 PHP_FUNCTION(rados_clone_range) {
     php_rados_ioctx *ioctx_r;
-    char *dst_oid=NULL;
-    char *src_oid=NULL;
-    int dst_oid_len;
-    int src_oid_len;
+    zend_string *dst_oid=NULL;
+    zend_string *src_oid=NULL;
     size_t size;
     uint64_t dst_offset;
     uint64_t src_offset;
@@ -1020,20 +1035,22 @@ PHP_FUNCTION(rados_clone_range) {
     int response = 0;
     char *errDesc = NULL;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rslsll", &zioctx, &dst_oid, &dst_oid_len, &dst_offset, &src_oid, &src_oid_len, &src_offset, &size) == FAILURE) {
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rSlSll", &zioctx, &dst_oid, &dst_offset, &src_oid, &src_offset, &size) == FAILURE) {
         RETURN_FALSE;
     }
 
-    ZEND_FETCH_RESOURCE(ioctx_r, php_rados_ioctx*, &zioctx, -1, PHP_RADOS_IOCTX_RES_NAME, le_rados_ioctx);
+    if ((ioctx_r = (php_rados_ioctx *) zend_fetch_resource(Z_RES_P(zioctx), PHP_RADOS_IOCTX_RES_NAME, le_rados_ioctx)) == NULL) {
+        RETURN_FALSE;
+    }
 
 
-    response = rados_clone_range(ioctx_r->io, dst_oid, dst_offset, src_oid, src_offset, size);
+    response = rados_clone_range(ioctx_r->io, (char *)dst_oid->val, dst_offset, (char *)src_oid->val, src_offset, size);
 
     if(response<0) {
         getErrorDescription(&errDesc,response);
         array_init(return_value);
         add_assoc_long(return_value, "errCode", (long)-response);
-        add_assoc_string(return_value, "errMessage", errDesc, 0);
+        add_assoc_string(return_value, "errMessage", errDesc);
     }
     else {
         RETURN_TRUE;
@@ -1042,63 +1059,63 @@ PHP_FUNCTION(rados_clone_range) {
 
 PHP_FUNCTION(rados_getxattr) {
     php_rados_ioctx *ioctx_r;
-    char *oid=NULL;
-    char *name=NULL;
-    int oid_len;
-    int name_len;
+    zend_string *oid=NULL;
+    zend_string *name=NULL;
     size_t size;
     zval *zioctx;
     int response = 0;
     char *errDesc = NULL;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rssl", &zioctx, &oid, &oid_len, &name, &name_len, &size) == FAILURE) {
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rSSl", &zioctx, &oid, &name, &size) == FAILURE) {
         RETURN_FALSE;
     }
 
     char buffer[size];
 
-    ZEND_FETCH_RESOURCE(ioctx_r, php_rados_ioctx*, &zioctx, -1, PHP_RADOS_IOCTX_RES_NAME, le_rados_ioctx);
+	if ((ioctx_r = (php_rados_ioctx *) zend_fetch_resource(Z_RES_P(zioctx), PHP_RADOS_IOCTX_RES_NAME, le_rados_ioctx)) == NULL) {
+        RETURN_FALSE;
+    }
+	
 
-
-    response = rados_getxattr(ioctx_r->io, oid, name, buffer, size);
+    response = rados_getxattr(ioctx_r->io, (char *)oid->val,(char *) name->val, buffer, size);
 
     if(response<0) {
         getErrorDescription(&errDesc,response);
         array_init(return_value);
         add_assoc_long(return_value, "errCode", (long)-response);
-        add_assoc_string(return_value, "errMessage", errDesc, 0);
+        add_assoc_string(return_value, "errMessage", errDesc);
     }
     else {
-        RETURN_STRINGL(buffer, response, 1);
+        RETURN_STRINGL(buffer, size);
     }
 }
 
 PHP_FUNCTION(rados_setxattr) {
     php_rados_ioctx *ioctx_r;
-    char *oid=NULL;
-    char *name=NULL;
+    zend_string *oid=NULL;
+    zend_string *name=NULL;
     char *buffer=NULL;
-    int oid_len;
-    int name_len;
     size_t buffer_len;
     zval *zioctx;
     int response = 0;
     char *errDesc = NULL;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rsss", &zioctx, &oid, &oid_len, &name, &name_len, &buffer, &buffer_len) == FAILURE) {
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rSSs", &zioctx, &oid, &name, &buffer, &buffer_len) == FAILURE) {
         RETURN_FALSE;
     }
 
-    ZEND_FETCH_RESOURCE(ioctx_r, php_rados_ioctx*, &zioctx, -1, PHP_RADOS_IOCTX_RES_NAME, le_rados_ioctx);
+    if ((ioctx_r = (php_rados_ioctx *) zend_fetch_resource(Z_RES_P(zioctx), PHP_RADOS_IOCTX_RES_NAME, le_rados_ioctx)) == NULL) {
+        RETURN_FALSE;
+    }
 
 
-    response = rados_setxattr(ioctx_r->io, oid, name, buffer, buffer_len);
+    response = rados_setxattr(ioctx_r->io, (char *)oid->val, (char *)name->val, buffer, buffer_len);
 
     if(response<0) {
         getErrorDescription(&errDesc,response);
         array_init(return_value);
         add_assoc_long(return_value, "errCode", (long)-response);
-        add_assoc_string(return_value, "errMessage", errDesc, 0);
+        add_assoc_string(return_value, "errMessage", errDesc);
     }
     else {
         RETURN_TRUE;
@@ -1107,29 +1124,28 @@ PHP_FUNCTION(rados_setxattr) {
 
 PHP_FUNCTION(rados_rmxattr) {
     php_rados_ioctx *ioctx_r;
-    char *oid=NULL;
-    char *name=NULL;
-    int oid_len;
-    int name_len;
+    zend_string *oid=NULL;
+    zend_string *name=NULL;
     size_t size;
     zval *zioctx;
     int response = 0;
     char *errDesc = NULL;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rss", &zioctx, &oid, &oid_len, &name, &name_len) == FAILURE) {
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rSS", &zioctx, &oid, &name) == FAILURE) {
         RETURN_FALSE;
     }
 
-    ZEND_FETCH_RESOURCE(ioctx_r, php_rados_ioctx*, &zioctx, -1, PHP_RADOS_IOCTX_RES_NAME, le_rados_ioctx);
+    if ((ioctx_r = (php_rados_ioctx *) zend_fetch_resource(Z_RES_P(zioctx), PHP_RADOS_IOCTX_RES_NAME, le_rados_ioctx)) == NULL) {
 
-
-    response = rados_rmxattr(ioctx_r->io, oid, name);
+        RETURN_FALSE;
+    }
+    response = rados_rmxattr(ioctx_r->io, (char *)oid->val, (char *)name->val);
 
     if(response<0) {
         getErrorDescription(&errDesc,response);
         array_init(return_value);
         add_assoc_long(return_value, "errCode", (long)-response);
-        add_assoc_string(return_value, "errMessage", errDesc, 0);
+        add_assoc_string(return_value, "errMessage", errDesc);
     }
     else {
         RETURN_TRUE;
@@ -1138,32 +1154,32 @@ PHP_FUNCTION(rados_rmxattr) {
 
 PHP_FUNCTION(rados_stat) {
     php_rados_ioctx *ioctx_r;
-    char *oid=NULL;
-    int oid_len;
+    zend_string *oid=NULL;
     uint64_t psize;
     time_t pmtime;
     zval *zioctx;
     int response = 0;
     char *errDesc = NULL;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &zioctx, &oid, &oid_len) == FAILURE) {
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rS", &zioctx, &oid) == FAILURE) {
         RETURN_FALSE;
     }
 
-    ZEND_FETCH_RESOURCE(ioctx_r, php_rados_ioctx*, &zioctx, -1, PHP_RADOS_IOCTX_RES_NAME, le_rados_ioctx);
+    if ((ioctx_r = (php_rados_ioctx *) zend_fetch_resource(Z_RES_P(zioctx), PHP_RADOS_IOCTX_RES_NAME, le_rados_ioctx)) == NULL) {
+        RETURN_FALSE;
+    }
 
-
-    response = rados_stat(ioctx_r->io, oid, &psize, &pmtime);
+    response = rados_stat(ioctx_r->io, (char *)oid->val, &psize, &pmtime);
 
     if(response<0) {
         getErrorDescription(&errDesc,response);
         array_init(return_value);
         add_assoc_long(return_value, "errCode", (long)-response);
-        add_assoc_string(return_value, "errMessage", errDesc, 0);
+        add_assoc_string(return_value, "errMessage", errDesc);
     }
     else {
         array_init(return_value);
-        add_assoc_string(return_value, "oid", oid, 1);
+        add_assoc_string(return_value, "oid", (char *)oid->val);
         add_assoc_long(return_value, "psize", (long)psize);
         add_assoc_long(return_value, "pmtime", (long)pmtime);
     }
@@ -1177,48 +1193,51 @@ PHP_FUNCTION(rados_get_last_version) {
         RETURN_FALSE;
     }
 
-    ZEND_FETCH_RESOURCE(ioctx_r, php_rados_ioctx*, &zioctx, -1, PHP_RADOS_IOCTX_RES_NAME, le_rados_ioctx);
+	if ((ioctx_r = (php_rados_ioctx *) zend_fetch_resource(Z_RES_P(zioctx), PHP_RADOS_IOCTX_RES_NAME, le_rados_ioctx)) == NULL) {
+        RETURN_FALSE;
+    }
 
     RETURN_LONG(rados_get_last_version(ioctx_r->io));
 }
 
 PHP_FUNCTION(rados_getxattrs) {
     php_rados_ioctx *ioctx_r;
-    char *oid=NULL;
-    int oid_len;
+    zend_string *oid=NULL;
     zval *zioctx;
     rados_xattrs_iter_t iter;
     char *errDesc = NULL;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &zioctx, &oid, &oid_len) == FAILURE) {
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rS", &zioctx, &oid) == FAILURE) {
         RETURN_FALSE;
     }
 
-    ZEND_FETCH_RESOURCE(ioctx_r, php_rados_ioctx*, &zioctx, -1, PHP_RADOS_IOCTX_RES_NAME, le_rados_ioctx);
+	if ((ioctx_r = (php_rados_ioctx *) zend_fetch_resource(Z_RES_P(zioctx), PHP_RADOS_IOCTX_RES_NAME, le_rados_ioctx)) == NULL) {
+        RETURN_FALSE;
+    }
 
     array_init(return_value);
 
-    int response = rados_getxattrs(ioctx_r->io, oid, &iter);
+    int response = rados_getxattrs(ioctx_r->io, (char *)oid->val, &iter);
     if(response<0) {
         getErrorDescription(&errDesc,response);
         array_init(return_value);
         add_assoc_long(return_value, "errCode", (long)-response);
-        add_assoc_string(return_value, "errMessage", errDesc, 0);
+        add_assoc_string(return_value, "errMessage", errDesc);
     }
     else {
-        while (1) {
-            const char *name;
-            const char *val;
-            size_t len;
+		while (1) {
+			const char *name;
+			const char *val;
+			size_t len;
 
-            rados_getxattrs_next(iter, &name, &val, &len);
-            if (name == NULL) {
-                break;
-            }
-            add_assoc_stringl_ex(return_value, name, strlen(name)+1, val, len, 1);
-        }
+			rados_getxattrs_next(iter, &name, &val, &len);
+			if (name == NULL) {
+				break;
+			}
+			add_assoc_stringl_ex(return_value, name, strlen(name)+1, val, len);
+		}
+	}
     rados_getxattrs_end(iter);
-    }
 }
 
 PHP_FUNCTION(rados_objects_list) {
@@ -1238,10 +1257,14 @@ PHP_FUNCTION(rados_objects_list) {
         limit = 0;
     }
 
+    if ((ioctx_r = (php_rados_ioctx *) zend_fetch_resource(Z_RES_P(zioctx), PHP_RADOS_IOCTX_RES_NAME, le_rados_ioctx)) == NULL) {
+        RETURN_FALSE;
+    }
+
     array_init(return_value);
 
     ZEND_FETCH_RESOURCE(ioctx_r, php_rados_ioctx*, &zioctx, -1, PHP_RADOS_IOCTX_RES_NAME, le_rados_ioctx);
-    
+
     rados_objects_list_open(ioctx_r->io, &ctx);
 
     const char *oid;
@@ -1271,29 +1294,31 @@ PHP_FUNCTION(rados_objects_list) {
 PHP_FUNCTION(rados_ioctx_snap_create) {
     php_rados_ioctx *ioctx_r;
     zval *zioctx;
-    char *snapname=NULL;
-    int snapname_len;
+    zend_string *snapname=NULL;
+
     int response = 0;
     char *errDesc = NULL;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &zioctx, &snapname, &snapname_len) == FAILURE) {
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rS", &zioctx, &snapname) == FAILURE) {
         RETURN_FALSE;
     }
 
-    if (snapname_len > PHP_RADOS_SNAP_NAME_MAX_LENGTH) {
+    if (snapname->len > PHP_RADOS_SNAP_NAME_MAX_LENGTH) {
         php_error_docref(NULL TSRMLS_CC, E_ERROR, "The snapshot name (%s) is too long!", snapname);
         RETURN_FALSE;
     }
 
-    ZEND_FETCH_RESOURCE(ioctx_r, php_rados_ioctx*, &zioctx, -1, PHP_RADOS_IOCTX_RES_NAME, le_rados_ioctx);
+    if ((ioctx_r = (php_rados_ioctx *) zend_fetch_resource(Z_RES_P(zioctx), PHP_RADOS_IOCTX_RES_NAME, le_rados_ioctx)) == NULL) {
+        RETURN_FALSE;
+    }
 
-    response = rados_ioctx_snap_create(ioctx_r->io, snapname);
+    response = rados_ioctx_snap_create(ioctx_r->io, (char *)snapname->val);
 
     if(response<0) {
         getErrorDescription(&errDesc,response);
         array_init(return_value);
         add_assoc_long(return_value, "errCode", (long)-response);
-        add_assoc_string(return_value, "errMessage", errDesc, 0);
+        add_assoc_string(return_value, "errMessage", errDesc);
     }
     else {
         RETURN_TRUE;
@@ -1303,25 +1328,25 @@ PHP_FUNCTION(rados_ioctx_snap_create) {
 PHP_FUNCTION(rados_ioctx_snap_remove) {
     php_rados_ioctx *ioctx_r;
     zval *zioctx;
-    char *snapname=NULL;
-    int snapname_len;
+    zend_string *snapname=NULL;
     int response = 0;
     char *errDesc = NULL;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &zioctx, &snapname, &snapname_len) == FAILURE) {
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rS", &zioctx, &snapname) == FAILURE) {
         RETURN_FALSE;
     }
 
-    ZEND_FETCH_RESOURCE(ioctx_r, php_rados_ioctx*, &zioctx, -1, PHP_RADOS_IOCTX_RES_NAME, le_rados_ioctx);
+	if ((ioctx_r = (php_rados_ioctx *) zend_fetch_resource(Z_RES_P(zioctx), PHP_RADOS_IOCTX_RES_NAME, le_rados_ioctx)) == NULL) {
+        RETURN_FALSE;
+    }
 
-
-    response = rados_ioctx_snap_remove(ioctx_r->io, snapname);
+    response = rados_ioctx_snap_remove(ioctx_r->io, (char *)snapname->val);
 
     if(response<0) {
         getErrorDescription(&errDesc,response);
         array_init(return_value);
         add_assoc_long(return_value, "errCode", (long)-response);
-        add_assoc_string(return_value, "errMessage", errDesc, 0);
+        add_assoc_string(return_value, "errMessage", errDesc);
     }
     else {
         RETURN_TRUE;
@@ -1331,26 +1356,26 @@ PHP_FUNCTION(rados_ioctx_snap_remove) {
 PHP_FUNCTION(rados_rollback) {
     php_rados_ioctx *ioctx_r;
     zval *zioctx;
-    char *snapname=NULL;
-    int snapname_len;
-    char *oid=NULL;
-    int oid_len;
+    zend_string *snapname=NULL;
+    zend_string *oid=NULL;
     int response = 0;
     char *errDesc = NULL;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rss", &zioctx, &oid, &oid_len, &snapname, &snapname_len) == FAILURE) {
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rSS", &zioctx, &oid, &snapname) == FAILURE) {
         RETURN_FALSE;
     }
 
-    ZEND_FETCH_RESOURCE(ioctx_r, php_rados_ioctx*, &zioctx, -1, PHP_RADOS_IOCTX_RES_NAME, le_rados_ioctx);
+	if ((ioctx_r = (php_rados_ioctx *) zend_fetch_resource(Z_RES_P(zioctx), PHP_RADOS_IOCTX_RES_NAME, le_rados_ioctx)) == NULL) {
+        RETURN_FALSE;
+    }
 
-    response = rados_ioctx_snap_rollback(ioctx_r->io, oid, snapname);
+    response = rados_ioctx_snap_rollback(ioctx_r->io, (char *)oid->val, (char *)snapname->val);
 
     if(response<0) {
         getErrorDescription(&errDesc,response);
         array_init(return_value);
         add_assoc_long(return_value, "errCode", (long)-response);
-        add_assoc_string(return_value, "errMessage", errDesc, 0);
+        add_assoc_string(return_value, "errMessage", errDesc);
     }
     else {
         RETURN_TRUE;
@@ -1369,7 +1394,9 @@ PHP_FUNCTION(rados_ioctx_snap_list) {
         RETURN_FALSE;
     }
 
-    ZEND_FETCH_RESOURCE(ioctx_r, php_rados_ioctx*, &zioctx, -1, PHP_RADOS_IOCTX_RES_NAME, le_rados_ioctx);
+	if ((ioctx_r = (php_rados_ioctx *) zend_fetch_resource(Z_RES_P(zioctx), PHP_RADOS_IOCTX_RES_NAME, le_rados_ioctx)) == NULL) {
+        RETURN_FALSE;
+    }
 
     if (maxsnaps > PHP_RADOS_SNAP_MAX_NUM) {
         php_error_docref(NULL TSRMLS_CC, E_ERROR, "The maximum number of snapshots per pool is %d!", PHP_RADOS_SNAP_MAX_NUM);
@@ -1384,7 +1411,7 @@ PHP_FUNCTION(rados_ioctx_snap_list) {
         getErrorDescription(&errDesc,r);
         array_init(return_value);
         add_assoc_long(return_value, "errCode", (long)-r);
-        add_assoc_string(return_value, "errMessage", errDesc, 0);
+        add_assoc_string(return_value, "errMessage", errDesc);
     }
     else {
 
@@ -1398,25 +1425,26 @@ PHP_FUNCTION(rados_ioctx_snap_list) {
 PHP_FUNCTION(rados_ioctx_snap_lookup) {
     php_rados_ioctx *ioctx_r;
     zval *zioctx;
-    char *snapname=NULL;
-    int snapname_len;
+    zend_string *snapname=NULL;
     rados_snap_t snapid;
     int response = 0;
     char *errDesc = NULL;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &zioctx, &snapname, &snapname_len) == FAILURE) {
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rS", &zioctx, &snapname) == FAILURE) {
         RETURN_FALSE;
     }
 
-    ZEND_FETCH_RESOURCE(ioctx_r, php_rados_ioctx*, &zioctx, -1, PHP_RADOS_IOCTX_RES_NAME, le_rados_ioctx);
+    if ((ioctx_r = (php_rados_ioctx *) zend_fetch_resource(Z_RES_P(zioctx), PHP_RADOS_IOCTX_RES_NAME, le_rados_ioctx)) == NULL) {
+        RETURN_FALSE;
+    }
 
-    response = rados_ioctx_snap_lookup(ioctx_r->io, snapname, &snapid);
+    response = rados_ioctx_snap_lookup(ioctx_r->io, (char *)snapname->val, &snapid);
 
     if(response<0) {
         getErrorDescription(&errDesc,response);
         array_init(return_value);
         add_assoc_long(return_value, "errCode", (long)-response);
-        add_assoc_string(return_value, "errMessage", errDesc, 0);
+        add_assoc_string(return_value, "errMessage", errDesc);
     }
     else {
         RETURN_LONG(snapid);
@@ -1435,8 +1463,9 @@ PHP_FUNCTION(rados_ioctx_snap_get_name) {
         RETURN_FALSE;
     }
 
-    ZEND_FETCH_RESOURCE(ioctx_r, php_rados_ioctx*, &zioctx, -1, PHP_RADOS_IOCTX_RES_NAME, le_rados_ioctx);
-
+	if ((ioctx_r = (php_rados_ioctx *) zend_fetch_resource(Z_RES_P(zioctx), PHP_RADOS_IOCTX_RES_NAME, le_rados_ioctx)) == NULL) {
+        RETURN_FALSE;
+    }
 
     response = rados_ioctx_snap_get_name(ioctx_r->io, snapid, snapname, sizeof(snapname));
 
@@ -1444,10 +1473,10 @@ PHP_FUNCTION(rados_ioctx_snap_get_name) {
         getErrorDescription(&errDesc,response);
         array_init(return_value);
         add_assoc_long(return_value, "errCode", (long)-response);
-        add_assoc_string(return_value, "errMessage", errDesc, 0);
+        add_assoc_string(return_value, "errMessage", errDesc);
     }
     else {
-        RETURN_STRINGL(snapname, strlen(snapname), 1);
+        RETURN_STRINGL(snapname, strlen(snapname));
     }
 }
 
@@ -1463,7 +1492,9 @@ PHP_FUNCTION(rados_ioctx_snap_get_stamp) {
         RETURN_FALSE;
     }
 
-    ZEND_FETCH_RESOURCE(ioctx_r, php_rados_ioctx*, &zioctx, -1, PHP_RADOS_IOCTX_RES_NAME, le_rados_ioctx);
+	if ((ioctx_r = (php_rados_ioctx *) zend_fetch_resource(Z_RES_P(zioctx), PHP_RADOS_IOCTX_RES_NAME, le_rados_ioctx)) == NULL) {
+        RETURN_FALSE;
+    }
 
     response = rados_ioctx_snap_get_stamp(ioctx_r->io, snapid, &time);
 
@@ -1471,7 +1502,7 @@ PHP_FUNCTION(rados_ioctx_snap_get_stamp) {
         getErrorDescription(&errDesc,response);
         array_init(return_value);
         add_assoc_long(return_value, "errCode", (long)-response);
-        add_assoc_string(return_value, "errMessage", errDesc, 0);
+        add_assoc_string(return_value, "errMessage", errDesc);
     }
     else {
         RETURN_LONG(time);
@@ -1489,14 +1520,16 @@ PHP_FUNCTION(rados_cluster_stat) {
         RETURN_NULL();
     }
 
-    ZEND_FETCH_RESOURCE(cluster_r, php_rados_cluster*, &zcluster, -1, PHP_RADOS_CLUSTER_RES_NAME, le_rados_cluster);
+    if ((cluster_r = (php_rados_cluster *) zend_fetch_resource(Z_RES_P(zcluster), PHP_RADOS_CLUSTER_RES_NAME, le_rados_cluster)) == NULL) {
+        RETURN_FALSE;
+    }
 
     response =  rados_cluster_stat(cluster_r->cluster, &result);
     if (response < 0) {
         getErrorDescription(&errDesc,response);
         array_init(return_value);
         add_assoc_long(return_value, "errCode", (long)-response);
-        add_assoc_string(return_value, "errMessage", errDesc, 0);
+        add_assoc_string(return_value, "errMessage", errDesc);
     }
     else {
 
@@ -1519,7 +1552,9 @@ PHP_FUNCTION(rados_ioctx_pool_stat) {
         RETURN_FALSE;
     }
 
-    ZEND_FETCH_RESOURCE(ioctx_r, php_rados_ioctx*, &zioctx, -1, PHP_RADOS_IOCTX_RES_NAME, le_rados_ioctx);
+	if ((ioctx_r = (php_rados_ioctx *) zend_fetch_resource(Z_RES_P(zioctx), PHP_RADOS_IOCTX_RES_NAME, le_rados_ioctx)) == NULL) {
+        RETURN_FALSE;
+    }
 
     response =  rados_ioctx_pool_stat(ioctx_r->io, &result);
 
@@ -1527,7 +1562,7 @@ PHP_FUNCTION(rados_ioctx_pool_stat) {
         getErrorDescription(&errDesc,response);
         array_init(return_value);
         add_assoc_long(return_value, "errCode", (long)-response);
-        add_assoc_string(return_value, "errMessage", errDesc, 0);
+        add_assoc_string(return_value, "errMessage", errDesc);
     }
     else {
         array_init(return_value);
@@ -1557,7 +1592,9 @@ PHP_FUNCTION(rados_cluster_fsid) {
         RETURN_NULL();
     }
 
-    ZEND_FETCH_RESOURCE(cluster_r, php_rados_cluster*, &zcluster, -1, PHP_RADOS_CLUSTER_RES_NAME, le_rados_cluster);
+	if ((cluster_r = (php_rados_cluster *) zend_fetch_resource(Z_RES_P(zcluster), PHP_RADOS_CLUSTER_RES_NAME, le_rados_cluster)) == NULL) {
+        RETURN_FALSE;
+    }
 
     response = rados_cluster_fsid(cluster_r->cluster, fsid, sizeof(fsid));
 
@@ -1565,10 +1602,10 @@ PHP_FUNCTION(rados_cluster_fsid) {
         getErrorDescription(&errDesc,response);
         array_init(return_value);
         add_assoc_long(return_value, "errCode", (long)-response);
-        add_assoc_string(return_value, "errMessage", errDesc, 0);
+        add_assoc_string(return_value, "errMessage", errDesc);
     }
     else {
-        RETURN_STRINGL(fsid, strlen(fsid), 1);
+        RETURN_STRINGL(fsid, strlen(fsid));
     }
 }
 
@@ -1582,7 +1619,9 @@ PHP_FUNCTION(rados_wait_for_latest_osdmap) {
         RETURN_NULL();
     }
 
-    ZEND_FETCH_RESOURCE(cluster_r, php_rados_cluster*, &zcluster, -1, PHP_RADOS_CLUSTER_RES_NAME, le_rados_cluster);
+	if ((cluster_r = (php_rados_cluster *) zend_fetch_resource(Z_RES_P(zcluster), PHP_RADOS_CLUSTER_RES_NAME, le_rados_cluster)) == NULL) {
+        RETURN_FALSE;
+    }
 
     response = rados_wait_for_latest_osdmap(cluster_r->cluster);
 
@@ -1590,7 +1629,7 @@ PHP_FUNCTION(rados_wait_for_latest_osdmap) {
         getErrorDescription(&errDesc,response);
         array_init(return_value);
         add_assoc_long(return_value, "errCode", (long)-response);
-        add_assoc_string(return_value, "errMessage", errDesc, 0);
+        add_assoc_string(return_value, "errMessage", errDesc);
     }
     else {
         RETURN_TRUE;
@@ -1609,17 +1648,19 @@ PHP_FUNCTION(rados_pool_reverse_lookup) {
         RETURN_NULL();
     }
 
-    ZEND_FETCH_RESOURCE(cluster_r, php_rados_cluster*, &zcluster, -1, PHP_RADOS_CLUSTER_RES_NAME, le_rados_cluster);
+    if ((cluster_r = (php_rados_cluster *) zend_fetch_resource(Z_RES_P(zcluster), PHP_RADOS_CLUSTER_RES_NAME, le_rados_cluster)) == NULL) {
+        RETURN_FALSE;
+    }
 
     response = rados_pool_reverse_lookup(cluster_r->cluster, pool_id, pool_name, sizeof(pool_name));
     if (response < 0) {
         getErrorDescription(&errDesc,response);
         array_init(return_value);
         add_assoc_long(return_value, "errCode", (long)-response);
-        add_assoc_string(return_value, "errMessage", errDesc, 0);
+        add_assoc_string(return_value, "errMessage", errDesc);
     }
     else {
-        RETURN_STRINGL(pool_name, strlen(pool_name), 1);
+        RETURN_STRINGL(pool_name, strlen(pool_name));
     }
 }
 
@@ -1631,7 +1672,9 @@ PHP_FUNCTION(rados_get_instance_id) {
         RETURN_NULL();
     }
 
-    ZEND_FETCH_RESOURCE(cluster_r, php_rados_cluster*, &zcluster, -1, PHP_RADOS_CLUSTER_RES_NAME, le_rados_cluster);
+	if ((cluster_r = (php_rados_cluster *) zend_fetch_resource(Z_RES_P(zcluster), PHP_RADOS_CLUSTER_RES_NAME, le_rados_cluster)) == NULL) {
+        RETURN_FALSE;
+    }
 
     RETURN_LONG(rados_get_instance_id(cluster_r->cluster));
 }
@@ -1648,7 +1691,9 @@ PHP_FUNCTION(rados_ioctx_create2)
         RETURN_NULL();
     }
 
-    ZEND_FETCH_RESOURCE(cluster_r, php_rados_cluster*, &zcluster, -1, PHP_RADOS_CLUSTER_RES_NAME, le_rados_cluster);
+	if ((cluster_r = (php_rados_cluster *) zend_fetch_resource(Z_RES_P(zcluster), PHP_RADOS_CLUSTER_RES_NAME, le_rados_cluster)) == NULL) {
+        RETURN_FALSE;
+    }
 
     verifyConnectionState(cluster_r->connected, true);
 
@@ -1658,8 +1703,9 @@ PHP_FUNCTION(rados_ioctx_create2)
 
     ioctx_r = (php_rados_ioctx *)emalloc(sizeof(php_rados_ioctx));
     ioctx_r->io = io;
-    ioctx_r->nspace = NULL;
-    ZEND_REGISTER_RESOURCE(return_value, ioctx_r, le_rados_ioctx);
+	ioctx_r->nspace = NULL;
+
+	RETURN_RES(zend_register_resource(ioctx_r, le_rados_ioctx));
 
 }
 
@@ -1671,7 +1717,9 @@ PHP_FUNCTION(rados_ioctx_get_id) {
         RETURN_FALSE;
     }
 
-    ZEND_FETCH_RESOURCE(ioctx_r, php_rados_ioctx*, &zioctx, -1, PHP_RADOS_IOCTX_RES_NAME, le_rados_ioctx);
+	if ((ioctx_r = (php_rados_ioctx *) zend_fetch_resource(Z_RES_P(zioctx), PHP_RADOS_IOCTX_RES_NAME, le_rados_ioctx)) == NULL) {
+        RETURN_FALSE;
+    }
 
     RETURN_LONG(rados_ioctx_get_id(ioctx_r->io));
 }
@@ -1685,13 +1733,15 @@ PHP_FUNCTION(rados_ioctx_get_pool_name) {
         RETURN_FALSE;
     }
 
-    ZEND_FETCH_RESOURCE(ioctx_r, php_rados_ioctx*, &zioctx, -1, PHP_RADOS_IOCTX_RES_NAME, le_rados_ioctx);
+    if ((ioctx_r = (php_rados_ioctx *) zend_fetch_resource(Z_RES_P(zioctx), PHP_RADOS_IOCTX_RES_NAME, le_rados_ioctx)) == NULL) {
+        RETURN_FALSE;
+    }
 
     if (rados_ioctx_get_pool_name(ioctx_r->io, &pool_name, sizeof(pool_name)) < 0) {
         RETURN_FALSE;
     }
 
-    RETURN_STRINGL(pool_name, strlen(pool_name), 1);
+    RETURN_STRINGL(pool_name, strlen(pool_name));
 }
 
 PHP_FUNCTION(rados_ioctx_get_namespace)
@@ -1703,10 +1753,12 @@ PHP_FUNCTION(rados_ioctx_get_namespace)
         RETURN_NULL();
     }
 
-    ZEND_FETCH_RESOURCE(ioctx_r, php_rados_ioctx*, &zioctx, -1, PHP_RADOS_IOCTX_RES_NAME, le_rados_ioctx);
+	if ((ioctx_r = (php_rados_ioctx *) zend_fetch_resource(Z_RES_P(zioctx), PHP_RADOS_IOCTX_RES_NAME, le_rados_ioctx)) == NULL) {
+        RETURN_FALSE;
+    }
 
     if (ioctx_r->nspace) {
-        RETURN_STRING(ioctx_r->nspace, 1);
+        RETURN_STRING(ioctx_r->nspace);
     } else {
         RETURN_NULL();
     }
@@ -1717,13 +1769,15 @@ PHP_FUNCTION(rados_ioctx_set_namespace)
     php_rados_ioctx *ioctx_r;
     zval *zioctx;
     char *nspace = NULL;
-    int nspace_len = 0;
+    size_t nspace_len = 0;
 
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs", &zioctx, &nspace, &nspace_len) == FAILURE) {
         RETURN_NULL();
     }
 
-    ZEND_FETCH_RESOURCE(ioctx_r, php_rados_ioctx*, &zioctx, -1, PHP_RADOS_IOCTX_RES_NAME, le_rados_ioctx);
+	if ((ioctx_r = (php_rados_ioctx *) zend_fetch_resource(Z_RES_P(zioctx), PHP_RADOS_IOCTX_RES_NAME, le_rados_ioctx)) == NULL) {
+        RETURN_FALSE;
+    }
 
     if (nspace_len == 0) {
         nspace = NULL;
