@@ -133,15 +133,6 @@ ZEND_BEGIN_ARG_INFO(arginfo_rados_append, 0)
     ZEND_ARG_INFO(0, buffer)
 ZEND_END_ARG_INFO()
 
-ZEND_BEGIN_ARG_INFO(arginfo_rados_clone_range, 0)
-    ZEND_ARG_INFO(0, ioctx)
-    ZEND_ARG_INFO(0, dst_oidoid)
-    ZEND_ARG_INFO(0, dst_offset)
-    ZEND_ARG_INFO(0, src_offsetobj)
-    ZEND_ARG_INFO(0, src_offset)
-    ZEND_ARG_INFO(0, size)
-ZEND_END_ARG_INFO()
-
 ZEND_BEGIN_ARG_INFO(arginfo_rados_getxattr, 0)
     ZEND_ARG_INFO(0, ioctx)
     ZEND_ARG_INFO(0, oid)
@@ -287,7 +278,6 @@ const zend_function_entry rados_functions[] = {
     PHP_FE(rados_remove, arginfo_rados_remove)
     PHP_FE(rados_trunc, arginfo_rados_trunc)
     PHP_FE(rados_append, arginfo_rados_append)
-    PHP_FE(rados_clone_range, arginfo_rados_clone_range)
     PHP_FE(rados_getxattr, arginfo_rados_getxattr)
     PHP_FE(rados_setxattr, arginfo_rados_setxattr)
     PHP_FE(rados_rmxattr, arginfo_rados_rmxattr)
@@ -1018,39 +1008,6 @@ PHP_FUNCTION(rados_append) {
 
 
     response = rados_append(ioctx_r->io, (char *)oid->val, buffer, buffer_len);
-    if(response<0) {
-        getErrorDescription(&errDesc,response);
-        array_init(return_value);
-        add_assoc_long(return_value, "errCode", (long)-response);
-        add_assoc_string(return_value, "errMessage", errDesc);
-    }
-    else {
-        RETURN_TRUE;
-    }
-}
-
-PHP_FUNCTION(rados_clone_range) {
-    php_rados_ioctx *ioctx_r;
-    zend_string *dst_oid=NULL;
-    zend_string *src_oid=NULL;
-    size_t size;
-    uint64_t dst_offset;
-    uint64_t src_offset;
-    zval *zioctx;
-    int response = 0;
-    char *errDesc = NULL;
-
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rSlSll", &zioctx, &dst_oid, &dst_offset, &src_oid, &src_offset, &size) == FAILURE) {
-        RETURN_FALSE;
-    }
-
-    if ((ioctx_r = (php_rados_ioctx *) zend_fetch_resource(Z_RES_P(zioctx), PHP_RADOS_IOCTX_RES_NAME, le_rados_ioctx)) == NULL) {
-        RETURN_FALSE;
-    }
-
-
-    response = rados_clone_range(ioctx_r->io, (char *)dst_oid->val, dst_offset, (char *)src_oid->val, src_offset, size);
-
     if(response<0) {
         getErrorDescription(&errDesc,response);
         array_init(return_value);
