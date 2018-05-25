@@ -1195,7 +1195,7 @@ PHP_FUNCTION(rados_getxattrs) {
             if (name == NULL) {
                 break;
             }
-            add_assoc_stringl_ex(return_value, name, strlen(name)+1, val, len);
+            add_assoc_stringl_ex(return_value, name, strlen(name), val, len);
         }
     }
     rados_getxattrs_end(iter);
