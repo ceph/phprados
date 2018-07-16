@@ -680,7 +680,7 @@ PHP_FUNCTION(rados_pool_create)
 {
     zval *zcluster;
     zval *options;
-    zval **entry;
+    zval *entry;
     php_rados_cluster *cluster_r;
     zend_string *pool = NULL;
     zend_string *key;
@@ -705,13 +705,13 @@ PHP_FUNCTION(rados_pool_create)
                 RETURN_NULL();
             }
 
-            if (Z_TYPE_PP(entry) == IS_LONG) {
+            if (Z_TYPE_P(entry) == IS_LONG) {
                 if (zend_string_equals_literal(key, "auid")) {
-                    auid = Z_LVAL_PP(entry);
+                    auid = Z_LVAL_P(entry);
                 }
 
                 if (zend_string_equals_literal(key, "crushrule")) {
-                    crushrule = Z_LVAL_PP(entry);
+                    crushrule = Z_LVAL_P(entry);
                 }
             }
             zend_hash_move_forward_ex(Z_ARRVAL_P(options), &pos);
