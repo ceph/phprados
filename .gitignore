@@ -9,3 +9,12 @@ build/*
 Makefile*
 *.m4
 .phpunit.result.cache
+config.h.in
+configure
+configure.ac
+run-tests.php
+autom4te.cache
+config.h
+config.nice
+config.status
+libtool
