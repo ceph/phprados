@@ -8,3 +8,4 @@ build/*
 .deps
 Makefile*
 *.m4
+.phpunit.result.cache

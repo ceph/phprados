@@ -11,7 +11,7 @@
  *
  */
 
-class RadosTest extends PHPUnit_Framework_TestCase {
+class RadosUnitTest extends PHPUnit\Framework\TestCase {
 
     public function testRadosConfSetGet() {
         $r = rados_create();
@@ -26,11 +26,15 @@ class RadosTest extends PHPUnit_Framework_TestCase {
     }
 
     public function testRadosConnect() {
-        $cluster = rados_create(getenv('id'));
+        if (getenv('config')) {
+            $cluster = rados_create();
+            rados_conf_read_file($cluster, "/etc/ceph/ceph.conf");
+        } else {
+            $cluster = rados_create(getenv('id'));
+            rados_conf_set($cluster, "mon_host", getenv('mon_host'));
+            rados_conf_set($cluster, "key", getenv('key'));
+        }
         $this->assertNotNull($cluster);
-
-        rados_conf_set($cluster, "mon_host", getenv('mon_host'));
-        rados_conf_set($cluster, "key", getenv('key'));
 
         $this->assertTrue(rados_connect($cluster));
 
@@ -242,5 +246,3 @@ class RadosTest extends PHPUnit_Framework_TestCase {
         $this->assertFalse(rados_ioctx_pool_required_alignment($ioctx));
     }
 }
-
-?>
