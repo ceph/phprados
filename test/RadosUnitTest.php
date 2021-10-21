@@ -244,6 +244,6 @@ class RadosUnitTest extends PHPUnit\Framework\TestCase {
      * @depends testRadosCreateIoCTX
      */
     public function testRadosPoolRequiredAlignment($ioctx) {
-        $this->assertFalse(rados_ioctx_pool_required_alignment($ioctx));
+        $this->assertEquals(0, rados_ioctx_pool_required_alignment($ioctx));
     }
 }
