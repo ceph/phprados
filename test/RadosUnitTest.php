@@ -28,7 +28,7 @@ class RadosUnitTest extends PHPUnit\Framework\TestCase {
     public function testRadosConnect() {
         if (getenv('config')) {
             $cluster = rados_create();
-            rados_conf_read_file($cluster, "/etc/ceph/ceph.conf");
+            rados_conf_read_file($cluster, getenv('config'));
         } else {
             $cluster = rados_create(getenv('id'));
             rados_conf_set($cluster, "mon_host", getenv('mon_host'));
