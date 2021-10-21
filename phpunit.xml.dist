@@ -3,7 +3,6 @@
   <testsuites>
     <testsuite name="Rados Test Suite">
       <file>test/RadosUnitTest.php</file>
-      <file>test/ListObjectsUnitTest.php</file>
     </testsuite>
   </testsuites>
 
