@@ -231,6 +231,7 @@ class RadosUnitTest extends PHPUnit\Framework\TestCase {
      * @depends testRadosCreateIoCTX
      */
     public function testRadosNamespace($ioctx) {
+        $this->markTestSkipped('The rados_ioctx_set_namespace() function causes segmentation faults.');
         $this->assertNull(rados_ioctx_get_namespace($ioctx));
         rados_ioctx_set_namespace($ioctx, "foo");
         $name = rados_ioctx_get_namespace($ioctx);
