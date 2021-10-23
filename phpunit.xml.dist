@@ -1,19 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <phpunit>
   <testsuites>
-    <testsuite name="My Test Suite">
-      <file>test/UnitTest.php</file>
+    <testsuite name="Rados Test Suite">
+      <file>test/RadosUnitTest.php</file>
     </testsuite>
   </testsuites>
 
   <!--
     Configuration for the test
     Write your own phpunit.xml to override
+
+    Remove config to use mon_host/id/key
   -->
   <php>
+    <env name="config"   value="/etc/ceph/ceph.conf" />
+
     <env name="mon_host" value="127.0.0.1" />
     <env name="id"       value="admin" />
     <env name="key"      value="CEPHXSECRET" />
+
     <env name="pool"     value="phprados" />
   </php>
 </phpunit>

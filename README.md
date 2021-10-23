@@ -17,13 +17,6 @@ $ php --re rados
 
 Real code examples can be taken from the Unit tests.
 
-# Sources
-Articles used for this extension:
-* http://devzone.zend.com/article/1021
-* http://devzone.zend.com/article/1022
-* http://devzone.zend.com/article/1024-Extension-Writing-Part-III-Resources
-* http://devzone.zend.com/article/4486-Wrapping-C-Classes-in-a-PHP-Extension
-
 # Dependencies
 Need libraries (Ubuntu / Debian):
 * libatomic-ops-dev (Needed for librados)
@@ -44,7 +37,7 @@ Unit tests are available in the "test" directory.
 
 These tests are all written for PHPUnit and require PHPUnit to be installed.
 
-PHPUnit can be dowloaded as a PHAR archive from the PHPUnit website:
+PHPUnit can be downloaded as a PHAR archive from the PHPUnit website:
 
 ```bash
 $ wget https://phar.phpunit.de/phpunit.phar
@@ -60,15 +53,18 @@ For example:
 <?xml version="1.0" encoding="UTF-8"?>
 <phpunit>
   <testsuites>
-    <testsuite name="My Test Suite">
-      <file>test/UnitTest.php</file>
+    <testsuite name="Rados Test Suite">
+      <file>test/RadosUnitTest.php</file>
     </testsuite>
   </testsuites>
 
   <php>
-    <env name="mon_host" value="localhost" />
+    <env name="config"   value="/etc/ceph/ceph.conf" />
+
+    <env name="mon_host" value="127.0.0.1" />
     <env name="id"       value="admin" />
-    <env name="key"      value="AQBYnaZUyOeRCRAAysjZSIsHO6aWKiTjXkVNMQ==" />
+    <env name="key"      value="CEPHXSECRET" />
+
     <env name="pool"     value="phprados" />
   </php>
 </phpunit>
@@ -83,23 +79,12 @@ $ ./phpunit.phar
 It should show that the tests have run successfully:
 
 ```
-/*
- * phprados - A PHP5 extension for using librados
- *
- * Copyright (C) 2013 Wido den Hollander <wido@widodh.nl>
- *
- * This is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License version 2.1, as published by the Free Software
- * Foundation.  See file COPYING.
- *
- */
+PHPUnit 8.5.2 by Sebastian Bergmann and contributors.
 
-PHPUnit 4.8.7 by Sebastian Bergmann and contributors.
+.....................S.                                           23 / 23 (100%)
 
-..................
+Time: 3.08 seconds, Memory: 4.00 MB
 
-Time: 2.23 seconds, Memory: 13.25Mb
-
-OK (18 tests, 49 assertions)
+OK, but incomplete, skipped, or risky tests!
+Tests: 23, Assertions: 55, Skipped: 1.
 ```

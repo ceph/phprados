@@ -1,23 +1,28 @@
 <?php
 
-class ListObjectsUnitTest extends PHPUnit_Framework_TestCase
+class ListObjectsUnitTest extends PHPUnit\Framework\TestCase
 {
     private $cluster;
 
     private $ioContext;
 
-    public function setUp()
+    public function setUp(): void
     {
-        $this->cluster = rados_create(getenv('id'));
-        rados_conf_set($this->cluster, "mon_host", getenv('mon_host'));
-        rados_conf_set($this->cluster, "key", getenv('key'));
+        if (getenv('config')) {
+            $this->cluster = rados_create();
+            rados_conf_read_file($this->cluster, getenv('config'));
+        } else {
+            $this->cluster = rados_create(getenv('id'));
+            rados_conf_set($this->cluster, "mon_host", getenv('mon_host'));
+            rados_conf_set($this->cluster, "key", getenv('key'));
+        }
         rados_connect($this->cluster);
         rados_pool_delete($this->cluster, getenv('pool'));
         rados_pool_create($this->cluster, getenv('pool'));
         $this->ioContext = rados_ioctx_create($this->cluster, getenv('pool'));
     }
 
-    public function tearDown()
+    public function tearDown(): void
     {
         rados_pool_delete($this->cluster, getenv('pool'));
     }

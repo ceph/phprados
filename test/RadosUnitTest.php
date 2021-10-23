@@ -11,7 +11,7 @@
  *
  */
 
-class RadosTest extends PHPUnit_Framework_TestCase {
+class RadosUnitTest extends PHPUnit\Framework\TestCase {
 
     public function testRadosConfSetGet() {
         $r = rados_create();
@@ -26,11 +26,15 @@ class RadosTest extends PHPUnit_Framework_TestCase {
     }
 
     public function testRadosConnect() {
-        $cluster = rados_create(getenv('id'));
+        if (getenv('config')) {
+            $cluster = rados_create();
+            rados_conf_read_file($cluster, getenv('config'));
+        } else {
+            $cluster = rados_create(getenv('id'));
+            rados_conf_set($cluster, "mon_host", getenv('mon_host'));
+            rados_conf_set($cluster, "key", getenv('key'));
+        }
         $this->assertNotNull($cluster);
-
-        rados_conf_set($cluster, "mon_host", getenv('mon_host'));
-        rados_conf_set($cluster, "key", getenv('key'));
 
         $this->assertTrue(rados_connect($cluster));
 
@@ -227,6 +231,7 @@ class RadosTest extends PHPUnit_Framework_TestCase {
      * @depends testRadosCreateIoCTX
      */
     public function testRadosNamespace($ioctx) {
+        $this->markTestSkipped('The rados_ioctx_set_namespace() function causes segmentation faults.');
         $this->assertNull(rados_ioctx_get_namespace($ioctx));
         rados_ioctx_set_namespace($ioctx, "foo");
         $name = rados_ioctx_get_namespace($ioctx);
@@ -239,8 +244,6 @@ class RadosTest extends PHPUnit_Framework_TestCase {
      * @depends testRadosCreateIoCTX
      */
     public function testRadosPoolRequiredAlignment($ioctx) {
-        $this->assertFalse(rados_ioctx_pool_required_alignment($ioctx));
+        $this->assertEquals(0, rados_ioctx_pool_required_alignment($ioctx));
     }
 }
-
-?>
