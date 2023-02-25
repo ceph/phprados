@@ -24,11 +24,13 @@
 typedef struct _php_rados_cluster {
     rados_t cluster;
     bool connected;
+    int ioctx_count;
 } php_rados_cluster;
 
 typedef struct _php_rados_ioctx {
     rados_ioctx_t io;
     char *nspace;
+    php_rados_cluster *cluster;
 } php_rados_ioctx;
 
 PHP_MINIT_FUNCTION(rados);
